@@ -15,13 +15,13 @@ function Tj = choiceByDifference(curr_A, w_code, C, alpha, M)
   %
   % Returns:
   %%%%%%%%%%%%%%%%%%%%
-  % Tj: matrix. size=(2*M, C). Net input for committed units in the coding layer.  <--- i think this should be (1, C)
-  
-  Tj = zeros(1, C);
+  % Tj: matrix. size=(2*M, C). Net input for committed units in the coding layer.
+  Tj = zeros(2*M, C);
   for j = 1:C
       left = sum(min(curr_A, w_code(:,j))); %absolute values might be slow, 
                                                %not sure if we need them
-      right = (1 - alpha) * (M - sum(abs(w_code(:,j))));  %feel like we need abs here, not sure about the one above either
+      right = (1 - alpha) * (M - sum(abs(w_code(:,j))));  % feel like we would need abs here
       Tj(:, j) = left + right;
+      Tj(:, j)
   end
 end
