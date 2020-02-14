@@ -21,7 +21,7 @@ function Tj = choiceByDifference(curr_A, w_code, C, alpha, M)
   for j = 1:C
       left = sum(min(curr_A, w_code(:,j))); %absolute values might be slow, 
                                                %not sure if we need them
-      right = (1 - alpha) * (M - sum(abs(w_code(:,j))));  %feel like we need abs here, not sure about the one above either
+      right = (1 - alpha) * (M - sum(w_code(:,j))); 
       Tj(:, j) = left + right;
   end
 end
