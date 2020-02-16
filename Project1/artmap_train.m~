@@ -49,16 +49,13 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   [C, w_code, w_out] = addCommitedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
   % loop for training epochs 
      % why separate the first sample????
-  for num_e = 1: n_epochs
+  for num_e = 1: 
     for i = 2:N
       [C, w_code, w_out] = addCommitedNode(C, A(:, i), data_y(1, i), w_code, w_out);
-      % ??
-      p_base = 0;
-      Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
-      
     end
   end
-  % set vigilance to base level? ---->0 or 1??? 
-  p_base = 0;
-
+  % set vigilance to base level?
+  p
+  % netIn
+  Tj = choiceByDifference(curr_A, w_code, C, alpha, M)
 end
