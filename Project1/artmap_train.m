@@ -44,17 +44,24 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   w_out = ones(C_max, n_classes);
   %complement code input samples
   A = complementCode(data_x);
-  % commit 1st cell
+  % commit 1st cell 
   C = 0;
   [C, w_code, w_out] = addCommitedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
   % loop for training epochs 
      % why separate the first sample????
   for num_e = 1: n_epochs
     for i = 2:N
-      [C, w_code, w_out] = addCommitedNode(C, A(:, i), data_y(1, i), w_code, w_out);
+        p_base = 0;
+        Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
+        
+        if Tj > alpha * p_base
+            net_act = Tj
+        else
+            net_act = 0
+        end
+        [C, w_code, w_out] = addCommitedNode(C, A(:, i), data_y(1, i), w_code, w_out);
       % ??
-      p_base = 0;
-      Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
+      
       
     end
   end
