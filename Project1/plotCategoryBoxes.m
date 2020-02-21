@@ -58,7 +58,8 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
         %rectangle("Position", [(1-row(3)) (row(2)) (row(1)+1-row(3)/2) (row(2)+row(2)/2)], "Curvature",[0 0]) 
     %end
     for row = 1:C
-        rectangle("Position", [w_code(row, 1) w_code(row, 2) abs(1-w_code(row, 3)-w_code(row, 1)) abs(1-w_code(row, 4)-w_code(row, 2))], "Curvature", [0, 0])
+        disp(size(w_code))
+        rectangle("Position", [w_code(1, row) w_code(2, row) (abs(1-w_code(3, row)-w_code(1, row))/2) (abs(1-w_code(4, row)-w_code(2, row))/2)], "Curvature", [0, 0])
     end
 end
 
