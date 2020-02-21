@@ -50,12 +50,15 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
   % incorrect, make the marker an x.
   %
   % Tip: It is possible to write this function without any loops
-  
+    
 	figure
     pbaspect([1 1 1])
     rectangle("Position",[.5 .5 2/sqrt(2*pi) 2/sqrt(2*pi)], "Curvature", [1 1])
-    for row = 1:w_code
-        
+    %for row = 1:w_code
+        %rectangle("Position", [(1-row(3)) (row(2)) (row(1)+1-row(3)/2) (row(2)+row(2)/2)], "Curvature",[0 0]) 
+    %end
+    for row = 1:C
+        rectangle("Position", [w_code(row, 1) w_code(row, 2) abs(1-w_code(row, 3)-w_code(row, 1)) abs(1-w_code(row, 4)-w_code(row, 2))], "Curvature", [0, 0])
     end
 end
 
