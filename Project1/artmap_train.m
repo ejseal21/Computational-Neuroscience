@@ -32,7 +32,8 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   % Matching tracking update rate. (-1, 1)
   e = -0.001;
   % Baseline vigilance / matching criterion. [0, 1]. 0 maximizes code compression.
-  p_base = 0;
+  p_base = 1;
+  p = p_base;
   % Number of training epochs. We only need 1 when beta=1
   n_epochs = 1;
   % Max number of commitable coding cells. C_max start uncommitted.
@@ -46,26 +47,40 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   A = complementCode(data_x);
   % commit 1st cell 
   C = 0;
-  [C, w_code, w_out] = addCommitedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
+  [C, w_code, w_out] = addCommittedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
   % loop for training epochs 
      % why separate the first sample????
   for num_e = 1: n_epochs
     for i = 2:N
-        p_base = 0;
+        p = p_base;
         Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
         
-        if Tj > alpha * p_base
-            net_act = Tj
+        if Tj > alpha * p
+            net_act = Tj;
         else
-            net_act = 0
+            net_act = 0;
         end
-        [C, w_code, w_out] = addCommitedNode(C, A(:, i), data_y(1, i), w_code, w_out);
+        
+        sort(net_act, "descend");
+
+        for candidate = 1:C
+            if sum(min(A, w_code(:,candidate)))/M >= p
+                if data_y(i) == find(w_out(candidate, :)==1)
+                   updateWts(beta, A, w_code, candidate); 
+                else
+                    matchTracking(A, w_code, candidate, M, e);
+                end
+            end
+        end
       % ??
       
+        if C_max > C
+            [C, w_code, w_out] = addCommittedNode(C, A(:, i), data_y(1, i), w_code, w_out);
+        end
       
     end
   end
   % set vigilance to base level? ---->0 or 1??? 
-  p_base = 0;
+  p = p_base;
 
 end
