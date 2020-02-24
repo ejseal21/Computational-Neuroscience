@@ -53,7 +53,7 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
     
 	figure
     pbaspect([1 1 1])
-    rectangle("Position",[.5 .5 2/sqrt(2*pi) 2/sqrt(2*pi)], "Curvature", [1 1])
+    viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'b')
     %for row = 1:w_code
         %rectangle("Position", [(1-row(3)) (row(2)) (row(1)+1-row(3)/2) (row(2)+row(2)/2)], "Curvature",[0 0]) 
     %end
