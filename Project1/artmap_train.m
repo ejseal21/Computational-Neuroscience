@@ -48,39 +48,46 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   % commit 1st cell 
   C = 0;
   [C, w_code, w_out] = addCommittedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
+  
   % loop for training epochs 
-     % why separate the first sample????
   for num_e = 1: n_epochs
+    % iterate thru samples
     for i = 2:N
         p = p_base;
         Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
         
-        if Tj > alpha * p
-            net_act = Tj;
-        else
-            net_act = 0;
-        end
+        %if Tj > alpha * p
+            %net_act = Tj;
+        %else
+            %net_act = 0;
+        %end
+        %sort(net_act, "descend");
         
-        sort(net_act, "descend");
-
-        for candidate = 1:C
-            if sum(min(A, w_code(:,candidate)))/M >= p
-                if data_y(i) == find(w_out(candidate, :)==1)
-                   updateWts(beta, A, w_code, candidate); 
+        [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
+        [irre, n_above_thre] = size(pm_sorted_inds);
+        
+        pass = 0;
+        disp(n_above_thre)
+        for candidate = 1:n_above_thre
+            if sum(min(A(:,candidate), w_code(:,candidate)))/M >= p
+                if data_y(1, i) == find(w_out(candidate, :)==1)
+                   updateWts(beta, A(:, i), w_code, candidate);
+                   pass = 1;
+                   continue
                 else
-                    matchTracking(A, w_code, candidate, M, e);
+                    p = matchTracking(A(:, i), w_code, candidate, M, e);
                 end
             end
         end
-      % ??
       
-        if C_max > C
+        %if C_max > C
+        if pass == 0
             [C, w_code, w_out] = addCommittedNode(C, A(:, i), data_y(1, i), w_code, w_out);
         end
       
     end
   end
   % set vigilance to base level? ---->0 or 1??? 
-  p = p_base;
+  % p = p_base;
 
 end
