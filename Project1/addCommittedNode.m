@@ -22,5 +22,5 @@ function [C, w_code, w_out] = addCommittedNode(C, curr_A, K, w_code, w_out)
   % w_out: matrix. size=(C_max, n_classes). Coding-layer-to-output-class-layer adaptive weights.
   C = C + 1;
   w_code(:, C) = curr_A;
-  w_out(1, K) = 1;
+  w_out(C, K) = 1;
 end

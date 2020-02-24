@@ -85,7 +85,7 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
       
         if C_max > C  % confused
           if pass == 0
-            [C, w_code, w_out] = addCommittedNode(C, A(:, i), data_y(1, i), w_code, w_out);
+            [C, w_code, w_out] = addCommittedNode(C, A(:, i), data_y(i), w_code, w_out);
           end
         end
       
