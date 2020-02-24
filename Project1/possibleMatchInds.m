@@ -18,7 +18,7 @@ function [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M)
   %pm_sorted_inds = zeros(1, numel(pm_inds);
   sort_Tj = sort(Tj(pm_inds), 'descend');
   for i = 1:numel(pm_inds)                      %should probably try to get rid of this loop but dont know how
-    pm_sorted_inds(1, i) = find(Tj == sort_Tj(1, i));
+    pm_sorted_inds(1, i) = find(Tj == sort_Tj(pm_inds(i)));
   end
 end
 

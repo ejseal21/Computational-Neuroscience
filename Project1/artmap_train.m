@@ -41,8 +41,8 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   
   [M, N] = size(data_x);
   % initialize weights
-  w_code = zeros(2*M, C_max);
-  w_out = ones(C_max, n_classes);
+  w_code = ones(2*M, C_max);
+  w_out = zeros(C_max, n_classes);
   %complement code input samples
   A = complementCode(data_x);
   % commit 1st cell 
@@ -53,7 +53,7 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
   for num_e = 1: n_epochs
     % iterate thru samples
     for i = 2:N
-        p = p_base;
+        p = p_base;  %??
         Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
         
         %if Tj > alpha * p
@@ -68,11 +68,13 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
         
         pass = 0;
         for c = 1:n_above_thre
-            disp(pm_sorted_inds(1, c))
             % vigilence test
-            if sum(min(A(:,pm_sorted_inds(1, c)), w_code(:,pm_sorted_inds(1, c))))/M >= p
-                if data_y(1, i) == find(w_out(:)==1)
-                   updateWts(beta, A(:, i), w_code, pm_sorted_inds(1, c));
+            if sum(min(A(:,i), w_code(:,pm_sorted_inds(c))))/M >= p
+                if data_y(i) == find(w_out(pm_sorted_inds(c), :)==1) %pm_sorted_inds(c) ??
+                  %disp(find(w_out(pm_sorted_inds(c), :)==1) == pm_sorted_inds(c))
+                  %disp(w_out(pm_sorted_inds(c), :))
+                  %disp(find(w_out(pm_sorted_inds(c), :)==1))
+                   w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
                    pass = 1;
                    break
                 else
@@ -81,7 +83,7 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
             end
         end
       
-        if C_max > C
+        if C_max > C  % confused
           if pass == 0
             [C, w_code, w_out] = addCommittedNode(C, A(:, i), data_y(1, i), w_code, w_out);
           end
