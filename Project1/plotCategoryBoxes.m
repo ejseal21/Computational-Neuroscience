@@ -53,13 +53,23 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
     
 	figure
     pbaspect([1 1 1])
-    viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'b')
+    viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'c')
     %for row = 1:w_code
         %rectangle("Position", [(1-row(3)) (row(2)) (row(1)+1-row(3)/2) (row(2)+row(2)/2)], "Curvature",[0 0]) 
     %end
+%     for row = 1:C
+%         disp(size(w_code))
+%         rectangle("Position", [w_code(1, row) w_code(2, row) (abs(1-w_code(3, row)-w_code(1, row))/2) (abs(1-w_code(4, row)-w_code(2, row))/2)], "Curvature", [0, 0])
+%     end
     for row = 1:C
-        disp(size(w_code))
-        rectangle("Position", [w_code(1, row) w_code(2, row) (abs(1-w_code(3, row)-w_code(1, row))/2) (abs(1-w_code(4, row)-w_code(2, row))/2)], "Curvature", [0, 0])
+        
+        x = [w_code(1, row), 1-w_code(3, row), 1-w_code(3, row), w_code(1, row), w_code(1, row)];
+        y = [w_code(2, row), w_code(2, row), 1-w_code(4, row),1-w_code(4, row), w_code(2, row)];
+        disp(x)
+        disp(y)
+        plot(x, y, 'b', 'LineWidth', 3);
+        hold on;
     end
+    
 end
 
