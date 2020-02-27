@@ -50,10 +50,11 @@ C = 0;
 [C, w_code, w_out] = addCommittedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
 
 % loop for training epochs
+figure
+hold on;
 for num_e = 1: n_epochs
   % iterate thru samples
   for i = 2:N
-    
     if show_plot == 1
       plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
     end
