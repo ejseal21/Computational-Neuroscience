@@ -70,7 +70,7 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
         disp(x)
         
         disp(w_code(1, row))
-        disp(w
+        disp(w)
         disp("y")
         disp(y)
         plot(x,y)
