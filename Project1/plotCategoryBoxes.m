@@ -66,7 +66,7 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
 %     
     
     if train_or_test == "train"
-%         plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
+        plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
 %         plot(A(1,data_y==1), A(2, data_y==1), 'o', 'Color', 'c', 'LineWidth', 2)
 %         plot(A(1,data_y==2), A(2, data_y==2), 's', 'Color', 'r', 'LineWidth', 2)
         
@@ -88,7 +88,11 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
    
         x = [w_code(1, row), 1-w_code(3, row), 1-w_code(3, row), w_code(1, row), w_code(1, row)];
         y = [w_code(2, row), w_code(2, row), 1-w_code(4, row),1-w_code(4, row), w_code(2, row)];
-        plot(x,y, 'LineWidth', 2)
+        if find(w_out(C, :) == 1) == 0
+            plot(x,y, 'LineWidth', 2, 'Color', 'c')
+        else
+            plot(x,y, 'LineWidth', 2, 'Color', 'r')
+        end
     end
     hold off;
 end
