@@ -53,7 +53,12 @@ C = 0;
 for num_e = 1: n_epochs
   % iterate thru samples
   for i = 2:N
-    p = p_base;  
+    
+    if show_plot == 1
+      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
+    end
+    
+    p = p_base;
     Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
     
     %if Tj > alpha * p
@@ -68,7 +73,7 @@ for num_e = 1: n_epochs
     
     pass = 0;
     for c = 1:n_above_thre
-      % vigilence test
+      % vigilance test
       if sum(min(A(:,i), w_code(:,pm_sorted_inds(c))))/M >= p
         if data_y(i) == find(w_out(pm_sorted_inds(c), :)==1)  
           w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
