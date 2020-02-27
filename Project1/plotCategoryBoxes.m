@@ -53,30 +53,40 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
     
 	figure
     pbaspect([1 1 1])
+
     hold on;
     viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'c')
-    %for row = 1:w_code
-        %rectangle("Position", [(1-row(3)) (row(2)) (row(1)+1-row(3)/2) (row(2)+row(2)/2)], "Curvature",[0 0]) 
-    %end
-%     for row = 1:C
-%         disp(size(w_code))
-%         rectangle("Position", [w_code(1, row) w_code(2, row) (abs(1-w_code(3, row)-w_code(1, row))/2) (abs(1-w_code(4, row)-w_code(2, row))/2)], "Curvature", [0, 0])
+    if train_or_test == "train"
+        if data_y(n) == 1
+            plot(A(1,n),A(2,n), 'o', 'Color', 'c', 'LineWidth', 2)
+        else
+            plot(A(1,n),A(2,n), 's', 'Color', 'r', 'LineWidth', 2)
+        end
+    end
+    
+    
+%     if train_or_test == "train"
+%         plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
+%         for index = 1:n-1
+%             disp(index)
+%             disp((A(1,index)))
+%             disp((A(2,index)))
+%             if data_y(index) == 1
+%                 plot(A(1,index),A(2,index), 'o', 'Color', 'c', 'LineWidth', 2)
+%             else
+%                 plot(A(1,index),A(2,index), 's', 'Color', 'r', 'LineWidth', 2)
+%             end
+%         end
 %     end
+
+    
+    
     for row = 1:C
-        disp("w_code")
-        disp(w_code)
-        disp("x")
+   
         x = [w_code(1, row), 1-w_code(3, row), 1-w_code(3, row), w_code(1, row), w_code(1, row)];
         y = [w_code(2, row), w_code(2, row), 1-w_code(4, row),1-w_code(4, row), w_code(2, row)];
-        disp(x)
-        
-        disp(w_code(1, row))
-        %disp(w)
-        disp("y")
-        disp(y)
-        plot(x,y)
-%         plot(x, y, 'b', 'LineWidth', 3);
+        plot(x,y, 'LineWidth', 2)
     end
-    hold off;
+%     hold off;
 end
 
