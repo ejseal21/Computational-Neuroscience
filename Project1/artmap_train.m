@@ -50,8 +50,8 @@ C = 0;
 [C, w_code, w_out] = addCommittedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
 
 % loop for training epochs
-figure
-hold on;
+% figure
+% hold on;
 for num_e = 1: n_epochs
   % iterate thru samples
   for i = 2:N

@@ -51,13 +51,13 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
   %
   % Tip: It is possible to write this function without any loops
     
-% 	figure
-    pbaspect([1 1 1])
-
-%     hold on;
-    viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'c')
+ 	figure(1);
+    clf;
+    pbaspect([1 1 1]);
+    hold on;
+    viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'c');
 %     if train_or_test == "train"
-%         if data_y(n) == 1
+%        if data_y(n) == 1
 %             plot(A(1,n),A(2,n), 'o', 'Color', 'c', 'LineWidth', 2)
 %         else
 %             plot(A(1,n),A(2,n), 's', 'Color', 'r', 'LineWidth', 2)
@@ -66,20 +66,20 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
 %     
     
     if train_or_test == "train"
-        plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
-        plot(A(1,data_y==1), A(2, data_y==1), 'o', 'Color', 'c', 'LineWidth', 2)
-        plot(A(1,data_y==2), A(2, data_y==2), 's', 'Color', 'r', 'LineWidth', 2)
+%         plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
+%         plot(A(1,data_y==1), A(2, data_y==1), 'o', 'Color', 'c', 'LineWidth', 2)
+%         plot(A(1,data_y==2), A(2, data_y==2), 's', 'Color', 'r', 'LineWidth', 2)
         
-%         for index = 1:n-1
+        for index = 1:n-1
 %             disp(index)
 %             disp((A(1,index)))
 %             disp((A(2,index)))
-%             if data_y(index) == 1
-%                 plot(A(1,index),A(2,index), 'o', 'Color', 'c', 'LineWidth', 2)
-%             else
-%                 plot(A(1,index),A(2,index), 's', 'Color', 'r', 'LineWidth', 2)
-%             end
-%         end
+            if data_y(index) == 1
+                plot(A(1,index),A(2,index), 'o', 'Color', 'c', 'LineWidth', 2)
+            else
+                plot(A(1,index),A(2,index), 's', 'Color', 'r', 'LineWidth', 2)
+            end
+        end
     end
 
     
@@ -90,6 +90,6 @@ function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred
         y = [w_code(2, row), w_code(2, row), 1-w_code(4, row),1-w_code(4, row), w_code(2, row)];
         plot(x,y, 'LineWidth', 2)
     end
-%     hold off;
+    hold off;
 end
 
