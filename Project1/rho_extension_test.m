@@ -1,4 +1,4 @@
-function [final_preds, acc] = artmap_ensemble(train_x, train_y, test_x, test_y, n_classes, n_voters, verbose)
+function [final_preds, acc] = rho_extension_test(train_x, train_y, test_x, test_y, n_classes, n_voters, verbose, reset_rho)
   %%artmap_ensemble train an ensemble of fuzzy ARTMAP systems and classify samples according to majority vote.
   %
   % Parameters:
@@ -37,7 +37,7 @@ function [final_preds, acc] = artmap_ensemble(train_x, train_y, test_x, test_y, 
       r = randperm(size(train_y, 2));
       shuf_x = train_x(:, r);
       shuf_y = train_y(:, r);
-      [C, w_code, w_out] = artmap_train(shuf_x, shuf_y, 2, 0, 0);
+      [C, w_code, w_out] = rho_extension(shuf_x, shuf_y, 2, 0, 0, reset_rho);
       tally(:, :, voter) = artmap_test_wta(C, w_code, w_out, test_x, test_y, 2, 0, 0);
   end
   
