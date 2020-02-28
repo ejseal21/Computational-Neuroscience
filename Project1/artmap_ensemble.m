@@ -44,22 +44,21 @@ function [final_preds, acc] = artmap_ensemble(train_x, train_y, test_x, test_y, 
   % Max number of commitable coding cells. All C_max cells start uncommitted.
   C_max = 20;
   
+  tally = zeros(n_classes, size(test_x, 2), n_voters);
   C = 0;
   w_code = [];
   w_out = [];
-  yh_pred = zeros(voters, size(test_x, 2));
-  for voter=1:voters
-      r = randperm(size(train_y), 2);
+  yh_pred = zeros(n_voters, size(test_x, 2));
+  for voter=1:n_voters
+      r = randperm(size(train_y, 2));
       shuf_x = train_x(:, r);
       shuf_y = train_y(:, r);
       [C, w_code, w_out] = artmap_train(shuf_x, shuf_y, 2, 0, 0);
+      tally(:, :, voter) = artmap_test_wta(C, w_code, w_out, test_x, test_y, 2, 0, 0);
   end
   
-  for voter=1:voters
-     yh_pred(voter, :) = artmap_test_wta(C, w_code, w_out, test_x, test_y, 2, 0, 0) ;
-  end
-  
-  tally = sum(yh_pred, 1);
-  max(tally, 2)
+  tally = sum(tally, 3);
+  [useless, final_preds] = max(tally, [], 1);
+  acc = accuracy(final_preds, test_y);
   
 end

@@ -11,6 +11,6 @@ function acc = accuracy(pred_y, true_y)
   %%%%%%%%%%%%%%%%%%%%
   % acc: double. Accuracy on the dataset.
   
-   indices =  find(pred_y~=true_y)
-   acc = 1-(size(indices)/size(true_y))
+   indices =  find(pred_y~=true_y);
+   acc = 1-(size(indices)/size(true_y));
 end
