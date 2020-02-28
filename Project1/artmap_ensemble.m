@@ -48,6 +48,8 @@ function [final_preds, acc] = artmap_ensemble(train_x, train_y, test_x, test_y, 
   w_code = [];
   w_out = [];
   yh_pred = zeros(voters, size(test_x, 2));
+  tally = zeros(n_samples, size(
+  
   for voter=1:voters
       r = randperm(size(train_y), 2);
       shuf_x = train_x(:, r);
