@@ -73,14 +73,14 @@ end
 
 if train_or_test == "test"
   for index = 1:n
-    if find(y_pred(index, :)==1) == 1
-      if 1 == find(y_pred(index, :)==1)
+    if find(y_pred(:, index)==1) == 1
+      if 1 == find(y_pred(:, index)==1)
         plot(A(1,index), A(2,index), 'o', 'Color', 'b', 'LineWidth', 2)
       else
         plot(A(1,index), A(2,index), 'x', 'Color', 'b', 'LineWidth', 2)
       end
     else
-      if 2 == find(y_pred(index, :)==1)
+      if 2 == find(y_pred(:, index)==1)
         plot(A(1,index), A(2,index), 'o', 'Color', 'r', 'LineWidth', 2)
       else
         plot(A(1,index), A(2,index), 'x', 'Color', 'r', 'LineWidth', 2)
