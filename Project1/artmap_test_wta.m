@@ -26,4 +26,35 @@ function yh_pred = artmap_test_wta(C, w_code, w_out, data_x, data_y, n_classes, 
   %
   % Coding layer y choice parameter. (0, 1)
   alpha = 0.01;
+  
+  % Set parameters
+    %
+    % Coding layer y choice parameter ("tie breaker" for activation values). (0, 1)
+    alpha = 0.01;
+    % Learning rate. [0, 1]. 1 means fast one-shot learning
+    beta = 1;
+    % Matching tracking update rate. (-1, 1)
+    e = -0.001;
+    % Baseline vigilance / matching criterion. [0, 1]. 0 maximizes code compression.
+    p_base = 0;
+    p = p_base;
+    % Number of training epochs. We only need 1 when beta=1
+    n_epochs = 1;
+    % Max number of commitable coding cells. C_max start uncommitted.
+    C_max = 20;
+
+    [M, N] = size(data_x);
+    %complement code input samples
+    A = complementCode(data_x);
+
+  % iterate thru samples
+  for i = 2:N
+    Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
+    [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
+    yh_pred = pm_sorted_inds(1);
+  end
+  if show_plot == 1
+      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
+  end
+    
 end
