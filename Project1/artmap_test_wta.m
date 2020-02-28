@@ -51,7 +51,7 @@ function yh_pred = artmap_test_wta(C, w_code, w_out, data_x, data_y, n_classes, 
   for i = 2:N
     Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
     [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
-    yh_pred = pm_sorted_inds(1);
+    yh_pred(pm_sorted_inds(1), i) = 1;
   end
   if show_plot == 1
       plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
