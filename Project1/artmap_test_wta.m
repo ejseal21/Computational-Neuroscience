@@ -54,7 +54,7 @@ function yh_pred = artmap_test_wta(C, w_code, w_out, data_x, data_y, n_classes, 
     yh_pred = pm_sorted_inds(1);
   end
   if show_plot == 1
-      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
+      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
   end
     
 end
