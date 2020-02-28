@@ -28,22 +28,6 @@ function [final_preds, acc] = artmap_ensemble(train_x, train_y, test_x, test_y, 
 
   % Set random seed for reproduceability
   rng(0);
-  
-  % Set parameters
-  %
-  % Coding layer y choice parameter. (0, 1)
-  alpha = 0.01;
-  % Learning rate. [0, 1]. 1 means fast one-shot learning
-  beta = 1;
-  % Matching tracking update rate. (-1, 1)
-  e = -0.001;
-  % Baseline vigilance / matching criterion. [0, 1]. 0 maximizes code compression.
-  p_base = 0;
-  % Number of training epochs
-  n_epochs = 1;
-  % Max number of commitable coding cells. All C_max cells start uncommitted.
-  C_max = 20;
-  
   tally = zeros(n_classes, size(test_x, 2), n_voters);
   C = 0;
   w_code = [];
