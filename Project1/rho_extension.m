@@ -1,4 +1,4 @@
-function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, show_plot, varargin)
+function [C, w_code, w_out] = rho_extension(data_x, data_y, n_classes, verbose, show_plot, reset_rho, varargin)
 %%artmap_train default ARTMAP training implementation of Fuzzy ARTMAP classifer with winner-take-all coding units
 %
 % Parameters:
@@ -29,15 +29,15 @@ function [C, w_code, w_out] = artmap_train(data_x, data_y, n_classes, verbose, s
 alpha = 0.01;
 % Learning rate. [0, 1]. 1 means fast one-shot learning
 beta = 1;
+% Max number of commitable coding cells. C_max start uncommitted.
+C_max = 20;
 % Matching tracking update rate. (-1, 1)
 e = -0.001;
 % Baseline vigilance / matching criterion. [0, 1]. 0 maximizes code compression.
-p_base = 0;
+p_base = zeros(C_max);
 p = p_base;
 % Number of training epochs. We only need 1 when beta=1
 n_epochs = 1;
-% Max number of commitable coding cells. C_max start uncommitted.
-C_max = 20;
 
 [M, N] = size(data_x);
 % initialize weights
@@ -56,8 +56,9 @@ for num_e = 1: n_epochs
     if show_plot == 1
       plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
     end
-    
-    p = p_base;
+    if reset_rho
+        p = p_base;
+    end
     Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
     
     [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
@@ -66,13 +67,13 @@ for num_e = 1: n_epochs
     pass = 0;
     for c = 1:n_above_thre
       % vigilance test
-      if sum(min(A(:,i), w_code(:,pm_sorted_inds(c))))/M >= p
+      if sum(min(A(:,i), w_code(:,pm_sorted_inds(c))))/M >= p(c)
         if data_y(i) == find(w_out(pm_sorted_inds(c), :)==1)  
           w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
           pass = 1;
           break
         else  
-          p = matchTracking(A(:, i), w_code, pm_sorted_inds(c), M, e);
+          p(c) = matchTracking(A(:, i), w_code, pm_sorted_inds(c), M, e);
         end
       end
     end
