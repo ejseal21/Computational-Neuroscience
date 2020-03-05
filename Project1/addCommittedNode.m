@@ -1,4 +1,4 @@
-function [C, w_code, w_out] = addCommittedNode(C, curr_A, K, w_code, w_out)
+function [C, w_code] = addCommittedNode(C, curr_A, K, w_code)
   %%addCommittedNode commit a new coding unit to code the current input pattern. This involves setting the wts of the newly
   %%committed coding unit to the current input pattern, and setting the wts going from the newly committed coding unit C
   %%to the output layer unit coding the correct output class (K) equal to 1.
@@ -22,5 +22,4 @@ function [C, w_code, w_out] = addCommittedNode(C, curr_A, K, w_code, w_out)
   % w_out: matrix. size=(C_max, n_classes). Coding-layer-to-output-class-layer adaptive weights.
   C = C + 1;
   w_code(:, C) = curr_A;
-  w_out(C, K) = 1;
 end

@@ -50,20 +50,18 @@ function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, varargin)
   end
   
 
-
-[M, N] = size(data_x);
+[M, N] = size(data);
 % initialize weights
 w_code = ones(2*M, C_max);
-w_out = zeros(C_max, n_classes);
 %complement code input samples
-A = complementCode(data_x);
+A = complementCode(data);
 C = 0;
+
 % loop for training epochs
 for num_e = 1: n_epochs
   % iterate thru samples
   for i = 1:N
     
-    p = p_base;
     Tj = choiceByWeber(A(:, i), w_code, alpha);
     pm_sorted_inds = possibleMatchInds(Tj, alpha, M);
 
@@ -75,7 +73,7 @@ for num_e = 1: n_epochs
             w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
             break
           else
-            addCommittedNode(C, A(:, i), data_y(i), w_code, w_out);
+            [C, w_code] = addCommittedNode(C, A(:, i), w_code);
             break
           end
       end
