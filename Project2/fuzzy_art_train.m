@@ -57,7 +57,7 @@ w_code = ones(2*M, C_max);
 w_out = zeros(C_max, n_classes);
 %complement code input samples
 A = complementCode(data_x);
-
+C = 0;
 % loop for training epochs
 for num_e = 1: n_epochs
   % iterate thru samples
@@ -65,35 +65,27 @@ for num_e = 1: n_epochs
     
     p = p_base;
     Tj = choiceByWeber(A(:, i), w_code, alpha);
-    
-    [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
-%     sort(Tj, 'Ascending');
-    pass = 0;
-    for c = 1:n_above_thre
+    pm_sorted_inds = possibleMatchInds(Tj, alpha, M);
+
+
+    for c = 1:nuel(pm_sorted_inds)
       % vigilance test
       if sum(min(A(:,i), w_code(:,pm_sorted_inds(c))))/M >= p
-        if data_y(i) == find(w_out(pm_sorted_inds(c), :)==1)  
-          w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
-          pass = 1;
-          break
-%         else  
-%           p = matchTracking(A(:, i), w_code, pm_sorted_inds(c), M, e);
-        end
-      end
-    end
-    
-    if C_max > C  % confused
-      if pass == 0
-        [C, w_code, w_out] = addCommittedNode(C, A(:, i), data_y(i), w_code, w_out);
+          if c < C
+            w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
+            break
+          else
+            addCommittedNode(C, A(:, i), data_y(i), w_code, w_out);
+            break
+          end
       end
     end
     
   end
+  
   if show_plot == 1
     plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
   end
 end
-
-
 
 end
