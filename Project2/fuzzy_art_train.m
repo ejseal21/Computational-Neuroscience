@@ -57,23 +57,16 @@ w_code = ones(2*M, C_max);
 w_out = zeros(C_max, n_classes);
 %complement code input samples
 A = complementCode(data_x);
-% commit 1st cell
-C = 0;
-[C, w_code, w_out] = addCommittedNode(C, A(:, 1), data_y(1, 1), w_code, w_out);
 
 % loop for training epochs
 for num_e = 1: n_epochs
   % iterate thru samples
-  for i = 2:N
-    if show_plot == 1
-      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
-    end
+  for i = 1:N
     
     p = p_base;
-    Tj = choiceByDifference(A(:, i), w_code, C, alpha, M);
+    Tj = choiceByWeber(A(:, i), w_code, alpha);
     
     [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
-    n_above_thre = numel(pm_sorted_inds);
     
     pass = 0;
     for c = 1:n_above_thre

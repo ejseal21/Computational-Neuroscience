@@ -10,7 +10,7 @@ function Tj = choiceByWeber(curr_A, w_code, alpha)
 M = M/2;
 Tj = zeros(1, C_max);
 for j = 1:C_max
-  Tj(:, j) = (sum(min(curr_A, w_code(:, j))))/(alpha + sum(w_code(:, j)));
-end
+  Tj = ()/(alpha + w_code(:, j))
+end 
 
 end
