@@ -67,7 +67,7 @@ for num_e = 1: n_epochs
     Tj = choiceByWeber(A(:, i), w_code, alpha);
     
     [pm_inds, pm_sorted_inds] = possibleMatchInds(Tj, alpha, M);
-    
+%     sort(Tj, 'Ascending');
     pass = 0;
     for c = 1:n_above_thre
       % vigilance test
@@ -76,8 +76,8 @@ for num_e = 1: n_epochs
           w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
           pass = 1;
           break
-        else  
-          p = matchTracking(A(:, i), w_code, pm_sorted_inds(c), M, e);
+%         else  
+%           p = matchTracking(A(:, i), w_code, pm_sorted_inds(c), M, e);
         end
       end
     end
@@ -88,6 +88,9 @@ for num_e = 1: n_epochs
       end
     end
     
+  end
+  if show_plot == 1
+    plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
   end
 end
 
