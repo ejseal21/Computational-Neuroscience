@@ -63,14 +63,14 @@ for num_e = 1: n_epochs
   for i = 1:N
     
     Tj = choiceByWeber(A(:, i), w_code, alpha);
-    pm_sorted_inds = possibleMatchInds(Tj, alpha, M);
+    sort_Tj = sort(Tj, 'descend');
 
-
-    for c = 1:nuel(pm_sorted_inds)
+    for c = 1:numel(Tj)
       % vigilance test
-      if sum(min(A(:,i), w_code(:,pm_sorted_inds(c))))/M >= p
-          if c < C
-            w_code = updateWts(beta, A(:, i), w_code, pm_sorted_inds(c));
+      ind = find(Tj==sort_Tj(c));
+      if sum(min(A(:,i), w_code(:,ind)))/M >= p
+          if ind < C
+            w_code = updateWts(beta, A(:, i), w_code, ind);
             break
           else
             [C, w_code] = addCommittedNode(C, A(:, i), w_code);
