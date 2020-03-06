@@ -50,11 +50,23 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   test = load_mnist('data/MNIST', 'test', num_exemplars, num_classes, 0);
   
   [C, w_code] = fuzzy_art_train(train, 1, 1, varargin{:});
+  
+
   c_pred = fuzzy_art_predict(C, w_code, test, 1);
   
-%   if plot_wts
-%     plotCategoryBoxes(complementCode(test), 100, 
-%   end
+  disp(c_pred(:, 1))
+  
+  if plot_wts
+    for class = 1:C
+        subplot(ceil(sqrt(C)),ceil(sqrt(C)), class), imshow(reshape(w_code(1:784 ,class), [28 28])');
+    end 
+  end
+  
+  if plot_recall
+      
+  end
+  
+  
   
 end
 
