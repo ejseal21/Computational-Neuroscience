@@ -46,8 +46,8 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   % - Predict the categories of the test set images.
   % - Possibly visualize the weights of the most active coding units during prediction to the test images.
   
-  train = load_mnist('data/MNIST', 'train', num_exemplars, num_classes, 0);
-  test = load_mnist('data/MNIST', 'test', num_exemplars, num_classes, 0);
+  train = load_mnist('data/MNIST', 'train', num_exemplars(1), num_classes, 0);
+  test = load_mnist('data/MNIST', 'test', num_exemplars(2), num_classes, 0);
   
   [C, w_code] = fuzzy_art_train(train, 1, 1, varargin{:});
   c_pred = fuzzy_art_predict(C, w_code, test, 1);

@@ -1,4 +1,4 @@
-function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, fast, varargin)
+function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, varargin)
   %%fuzzy_art fuzzy ART unsupervised pattern learning algorithm
   %
   % Parameters:
@@ -32,7 +32,7 @@ function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, fast, varargin)
   n_epochs = 1;
   % Max number of commitable coding cells. C_max start uncommitted.
   C_max = size(data, 2);
- 
+  fast = 0;
   % Override default settings/parameters
   for arg = 1:2:length(varargin)
     switch varargin{arg}
@@ -46,6 +46,8 @@ function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, fast, varargin)
         n_epochs = varargin{arg+1};
       case 'C_max'
         C_max = varargin{arg+1};
+      case 'fast'
+        fast = varargin(arg+1);
     end
   end
   
@@ -70,7 +72,7 @@ for num_e = 1: n_epochs
       ind = find(Tj==sort_Tj(c));
       if sum(min(A(:,i), w_code(:,ind)))/M >= p
           if ind <= C
-            if fast
+            if fast{1}
               w_code = updateWts(beta, A(:, i), w_code, ind);
             else
               w_code = updateWts(1, A(:, i), w_code, ind);
