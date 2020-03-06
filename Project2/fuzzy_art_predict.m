@@ -19,6 +19,7 @@ function c_pred = fuzzy_art_predict(C, w_code, data, verbose, varargin)
   %
   % Coding layer y choice parameter. (0, Inf)
   alpha = 0.01;
+  [M, N] = size(data);
   
   % Override default settings/parameters
   for arg = 1:2:length(varargin)
@@ -27,14 +28,19 @@ function c_pred = fuzzy_art_predict(C, w_code, data, verbose, varargin)
         alpha = varargin{arg+1};
     end
   end
-  A = complementCode(data);
   
-  for i = 1:C
-    Tj = choiceByWeber(A(:, i), w_code, alpha);
-    find(Tj == max(Tj));
+  A = complementCode(data);
+  c_pred = zeros(N, 1);
+  
+  for samp = 1:N
+    for i = 1:C
+      Tj = choiceByWeber(A(:, i), w_code, alpha);
+%       argmax = Tj(find(Tj == max(Tj)));
+      c_pred(samp) = find(Tj == max(Tj));
+    end
   end
   if show_plot == 1
-      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
+    plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
   end
 
 

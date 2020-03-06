@@ -45,5 +45,7 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   % - Possibly visualize the weights.
   % - Predict the categories of the test set images.
   % - Possibly visualize the weights of the most active coding units during prediction to the test images.
+  
+  
 end
 
