@@ -54,17 +54,24 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
 
   c_pred = fuzzy_art_predict(C, w_code, test, 1);
   
-  disp(c_pred(:, 1))
-  
+    
   if plot_wts
+      figure(1)
     for class = 1:C
         subplot(ceil(sqrt(C)),ceil(sqrt(C)), class), imshow(reshape(w_code(1:784 ,class), [28 28])');
     end 
   end
   
+  
   if plot_recall
-      
+      sizes = size(test);
+      figure(2)
+      for img =  1:sizes(2)
+        subplot(sizes(2), 2, (2*img)-1), imshow(reshape(test(:,img), [28 28])');
+        subplot(sizes(2), 2, 2*img), imshow(reshape(w_code(1:784, c_pred(img)), [28 28])');
+      end
   end
+  
   
   
   
