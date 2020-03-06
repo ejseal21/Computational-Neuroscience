@@ -27,4 +27,16 @@ function c_pred = fuzzy_art_predict(C, w_code, data, verbose, varargin)
         alpha = varargin{arg+1};
     end
   end
+  A = complementCode(data);
+  
+  for i = 1:C
+    Tj = choiceByWeber(A(:, i), w_code, alpha);
+    find(Tj == max(Tj));
+  end
+  if show_plot == 1
+      plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
+  end
+
+
+
 end

@@ -1,4 +1,4 @@
-function plotCategoryBoxes(A, data_y, n, C, w_code, w_out, train_or_test, y_pred)
+function plotCategoryBoxes(A, n, C, w_code, train_or_test, y_pred)
 %plotCategoryBoxes plots the data and the category boxes to visualize fuzzy ARTMAP.
 %
 % Goal: Plot the data and network state on a SINGLE figure/plot. In other words, this function should only generate
@@ -57,49 +57,51 @@ pbaspect([1 1 1]);
 hold on;
 viscircles([.5 .5],1/sqrt(2*pi), 'Color', 'c');
 
-if train_or_test == "train"
-  plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
-  %         plot(A(1,data_y==1), A(2, data_y==1), 'o', 'Color', 'c', 'LineWidth', 2)
-  %         plot(A(1,data_y==2), A(2, data_y==2), 's', 'Color', 'r', 'LineWidth', 2)
-  
-  for index = 1:n-1
-    if data_y(index) == 1
+plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
+for index = 1:n-1
       plot(A(1,index),A(2,index), 'o', 'Color', 'b', 'LineWidth', 2)
-    else
-      plot(A(1,index),A(2,index), 's', 'Color', 'r', 'LineWidth', 2)
-    end
-  end
 end
-
-if train_or_test == "test"
-  for index = 1:n
-    if find(y_pred(:, index)==1) == 1
-      if 1 == data_y(index)
-        plot(A(1,index), A(2,index), 'o', 'Color', 'b', 'LineWidth', 2)
-      else
-        %disp("misatch")
-        plot(A(1,index), A(2,index), 'x', 'Color', 'b', 'LineWidth', 2)
-      end
-    else
-      %if find(y_pred(:, index)==1) == 2
-        if 2 == data_y(index)
-          plot(A(1,index), A(2,index), 'o', 'Color', 'r', 'LineWidth', 2)
-        else
-        %disp("mistach")
-          plot(A(1,index), A(2,index), 'x', 'Color', 'r', 'LineWidth', 2)
-        end
-    end
-  end
-end
+  
+% if train_or_test == "train"
+%   plot(A(1,n),A(2,n), '+', 'Color','k', 'LineWidth', 2);
+%   %         plot(A(1,data_y==1), A(2, data_y==1), 'o', 'Color', 'c', 'LineWidth', 2)
+%   %         plot(A(1,data_y==2), A(2, data_y==2), 's', 'Color', 'r', 'LineWidth', 2)
+%   
+%   for index = 1:n-1
+%       plot(A(1,index),A(2,index), 's', 'Color', 'r', 'LineWidth', 2)
+%   end
+% end
+% 
+% if train_or_test == "test"
+%   for index = 1:n
+%       plot(A(1,index), A(2,index), 'x', 'Color', 'r', 'LineWidth', 2
+% %     if find(y_pred(:, index)==1) == 1
+% %       if 1 == data_y(index)
+% %         plot(A(1,index), A(2,index), 'o', 'Color', 'b', 'LineWidth', 2)
+% %       else
+% %         %disp("misatch")
+% %         plot(A(1,index), A(2,index), 'x', 'Color', 'b', 'LineWidth', 2)
+% %       end
+% %     else
+%       %if find(y_pred(:, index)==1) == 2
+% %         if 2 == data_y(index)
+% %           plot(A(1,index), A(2,index), 'o', 'Color', 'r', 'LineWidth', 2)
+% %         else
+% %         %disp("mistach")
+% %           plot(A(1,index), A(2,index), 'x', 'Color', 'r', 'LineWidth', 2)
+% %         end
+% %     end
+%   end
+% end
 
 for row = 1:C
   x = [w_code(1, row), 1-w_code(3, row), 1-w_code(3, row), w_code(1, row), w_code(1, row)];
   y = [w_code(2, row), w_code(2, row), 1-w_code(4, row),1-w_code(4, row), w_code(2, row)];
-  if find(w_out(row, :) == 1) == 1
-    plot(x,y, 'LineWidth', 2, 'Color', 'b')
-  else
-    plot(x,y, 'LineWidth', 2, 'Color', 'r')
-  end
+  plot(x,y, 'LineWidth', 2, 'Color', 'b')
+  %   if find(w_out(row, :) == 1) == 1
+%   else
+%     plot(x,y, 'LineWidth', 2, 'Color', 'r')
+%   end
 end
 hold off;
 

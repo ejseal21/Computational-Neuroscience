@@ -69,7 +69,7 @@ for num_e = 1: n_epochs
       % vigilance test
       ind = find(Tj==sort_Tj(c));
       if sum(min(A(:,i), w_code(:,ind)))/M >= p
-          if ind < C
+          if ind <= C
             w_code = updateWts(beta, A(:, i), w_code, ind);
             break
           else
@@ -82,7 +82,7 @@ for num_e = 1: n_epochs
   end
   
   if show_plot == 1
-    plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "train");
+    plotCategoryBoxes(A, i, C, w_code, "train");
   end
 end
 
