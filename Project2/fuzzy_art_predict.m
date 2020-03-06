@@ -33,11 +33,11 @@ function c_pred = fuzzy_art_predict(C, w_code, data, verbose, varargin)
   c_pred = zeros(N, 1);
   
   for samp = 1:N
-    for i = 1:C
-      Tj = choiceByWeber(A(:, i), w_code, alpha);
+    %for i = 1:C
+      Tj = choiceByWeber(A(:, samp), w_code(:, 1:C), alpha);
 %       argmax = Tj(find(Tj == max(Tj)));
       c_pred(samp) = find(Tj == max(Tj));
-    end
+    %end
   end
 %   if show_plot == 1
 %     plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
