@@ -1,4 +1,4 @@
-function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, varargin)
+function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, fast, varargin)
   %%fuzzy_art fuzzy ART unsupervised pattern learning algorithm
   %
   % Parameters:
@@ -70,7 +70,11 @@ for num_e = 1: n_epochs
       ind = find(Tj==sort_Tj(c));
       if sum(min(A(:,i), w_code(:,ind)))/M >= p
           if ind <= C
-            w_code = updateWts(beta, A(:, i), w_code, ind);
+            if fast
+              w_code = updateWts(beta, A(:, i), w_code, ind);
+            else
+              w_code = updateWts(1, A(:, i), w_code, ind);
+            end
             break
           else
             [C, w_code] = addCommittedNode(C, A(:, i), w_code);
