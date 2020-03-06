@@ -39,9 +39,9 @@ function c_pred = fuzzy_art_predict(C, w_code, data, verbose, varargin)
       c_pred(samp) = find(Tj == max(Tj));
     end
   end
-  if show_plot == 1
-    plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
-  end
+%   if show_plot == 1
+%     plotCategoryBoxes(A, data_y, i, C, w_code, w_out, "test", yh_pred);
+%   end
 
 
 

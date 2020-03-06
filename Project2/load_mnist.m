@@ -21,12 +21,12 @@ function [mnist_data, mnist_y] = load_mnist(mnist_path, which_set, num_exemplars
   % mnist_y. matrix of doubles. size=(num_exemplars*num_classes, 1).
   %   Int-codes of MNIST class for each sample. Codes should be ints in the range (inclusive) [0, 9] and literally mean
   %   which digit is shown in the image.
-  if which_set == 'train'
+  if strcmp(which_set, 'train')
     mnist_data = struct2array(load(strcat(mnist_path,'/mnist_train.mat')));
     mnist_y = struct2array(load(strcat(mnist_path, '/mnist_train_labels.mat')));
   else
-    mnist_data = struct2array(load(strcat(mnist_path, 'mnist_test.mat')));
-    mnist_y = struct2array(load(strcat(mnist_path, 'mnist_test_labels.mat')));
+    mnist_data = struct2array(load(strcat(mnist_path, '/mnist_test.mat')));
+    mnist_y = struct2array(load(strcat(mnist_path, '/mnist_test_labels.mat')));
   end
   mnist_data = mnist_data / 255;
   
