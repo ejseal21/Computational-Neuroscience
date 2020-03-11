@@ -73,15 +73,14 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   end
   
   if noisify_test
-      proportion = .15;
+      proportion = .90;
       test_size = size(test);
-      
       
       for img = 1:test_size(2)
           for pixel = 1:test_size(1)
             chance = rand;
             if chance <= proportion
-                test(pixel, img) = abs(test(pixel, img) - 1);
+                test(pixel, img) = round(rand);
             end
           end
       end
@@ -95,7 +94,29 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
       end
   end
   
-  
+  if erase_test
+      proportion = .7;
+      test_size = size(test);
+      other_test = reshape(test, [28 28 10]);
+      num_cols_black = round(proportion*28);
+
+      for img = 1:test_size(2)
+          for col = 1:num_cols_black
+              other_test(col,:,img) = 0;
+          end
+      end
+
+      test = reshape(other_test, [ 784 10]);
+      c_pred = fuzzy_art_predict(C, w_code, test, 1);
+      sizes = size(test);
+      figure(4)
+      
+      for img =  1:sizes(2)
+        subplot(sizes(2), 2, (2*img)-1), imshow(reshape(test(:,img), [28 28])');
+        subplot(sizes(2), 2, 2*img), imshow(reshape(w_code(1:784, c_pred(img)), [28 28])');
+      end
+              
+  end
   
   
 end
