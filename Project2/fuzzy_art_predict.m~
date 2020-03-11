@@ -34,10 +34,9 @@ function c_pred = fuzzy_art_predict(C, w_code, data, verbose, varargin)
   
   for samp = 1:N
     %for i = 1:C
-      Tj = choiceByWeber(A(:, samp), w_code(:, 1:C), alpha);  % not sure about w_code(:, 1:C)
+      Tj = choiceByWeber(A(:, samp), w_code(:, 1:C), alpha);  
 %       argmax = Tj(find(Tj == max(Tj)));
-      c_preds = find(Tj == max(Tj));
-      c_pred(samp) = c_preds(1);
+      c_pred(samp) = find(Tj == max(Tj, "all"));
     %end
   end
 %   if show_plot == 1

@@ -46,8 +46,8 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   % - Predict the categories of the test set images.
   % - Possibly visualize the weights of the most active coding units during prediction to the test images.
   
-  [train_data, train_y] = load_mnist('data/MNIST', sets(1), num_exemplars(1), num_classes, 0);
-  [test_data, test_y] = load_mnist('data/MNIST', sets(2), num_exemplars(2), num_classes, 0);
+  [train_data, train_y] = load_mnist('data/MNIST', set(1), num_exemplars(1), num_classes, 0);
+  [test_data, test_y] = load_mnist('data/MNIST', set(2), num_exemplars(2), num_classes, 0);
   
   [C, w_code] = fuzzy_art_train(train_data, 1, 1, varargin{:});
   c_pred = fuzzy_art_predict(C, w_code, test_data, 1);
@@ -116,9 +116,6 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
               
   end
   
-  
-  mnist_test_y = c_pred;
-  code_inds = c_pred;       % ????? not sure about the difference between mnist_test_y and code_inds
   
 end
 
