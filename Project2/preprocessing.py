@@ -25,10 +25,10 @@ def resize_imgs(imgs, width, height):
         Grayscale images
     '''
     imgs = imgs.copy()
-    for img in imgs:
-        img = img.convert(mode="L")
-        img = img.resize((width, height))
-    return imgs
+    for img in range(len(imgs)):
+        imgs[img] = np.array(imgs[img].convert('L').resize((width,height)))
+
+    return np.array(imgs)
 
 def img2binaryvectors(data, bipolar=True):
     '''Transform grayscale images into normalized, centered, binarized 1D feature vectors with
