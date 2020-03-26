@@ -76,6 +76,7 @@ def vec2img(feat_vecs, width, height):
     ndarray. shape=(N, height, width).
         Inflated version of `feat_vecs` into images
     '''
+    return np.reshape(feat_vecs, (feat_vecs.shape[0], width, height))
     pass
 
 
