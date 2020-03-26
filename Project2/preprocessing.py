@@ -1,11 +1,11 @@
 '''preprocessing.py
 Preprocess data before training neural network
 CS443: Computational Neuroscience
-YOUR NAMES HERE
+Alice Zhang, Cole Turner, Ethan Seal
 Project 2: Content Addressable Memory
 '''
 import numpy as np
-from PIL import Image
+from PIL import Image as im
 
 
 def resize_imgs(imgs, width, height):
@@ -25,7 +25,10 @@ def resize_imgs(imgs, width, height):
         Grayscale images
     '''
     imgs = imgs.copy()
-
+    for img in imgs:
+        img = img.convert(mode="L")
+        img = img.resize((width, height))
+    return imgs
 
 def img2binaryvectors(data, bipolar=True):
     '''Transform grayscale images into normalized, centered, binarized 1D feature vectors with
