@@ -48,17 +48,12 @@ def img2binaryvectors(data, bipolar=True):
     - Center the image then threshold at 0 so that values are either -1 or +1.
     - Reshape so that the result is a 1D vector (see shape above)
     '''
-    data = data / np.max(data, axis=(1, 2))
-    data = data - np.min(data, axis=(1, 2))
-    data = data - np.median(data, axis=(1,2))
+    data = data / np.expand_dims(np.max(data, axis=(1, 2)), axis=(1, 2))
+    data = data - np.expand_dims(np.min(data, axis=(1, 2)), axis=(1, 2))
+    data = data - np.expand_dims(np.median(data, axis=(1, 2)), axis=(1, 2))
     data = np.where(data < 0, -1, 1)
     data = np.reshape(data, (data.shape[0], -1))
-    return data
-
-    # for i in data.shape[0]:
-    #     data[i, :, :] = data[i, :, :] / np.max(data[i, :, :])
-    #     data[i, :, :] = data[i, :, :] - np.min(data[i, :, :])
-        
+    return data.astype(np.int64)
 
 
 def vec2img(feat_vecs, width, height):
@@ -76,8 +71,8 @@ def vec2img(feat_vecs, width, height):
     ndarray. shape=(N, height, width).
         Inflated version of `feat_vecs` into images
     '''
-    return np.reshape(feat_vecs, (feat_vecs.shape[0], width, height))
-    pass
+    imgs = np.reshape(feat_vecs, (feat_vecs.shape[0], width, height))
+    return imgs
 
 
 def recall_error(orig_data, recovered_data, tol=0.5):
