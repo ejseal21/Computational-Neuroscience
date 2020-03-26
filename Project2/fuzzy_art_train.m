@@ -72,7 +72,7 @@ for num_e = 1: n_epochs
       ind = find(Tj==sort_Tj(c));
       if sum(min(A(:,i), w_code(:,ind)))/M >= p
           if ind <= C
-            if fast{1}
+            if fast(1)
               w_code = updateWts(beta, A(:, i), w_code, ind);
             else
               w_code = updateWts(1, A(:, i), w_code, ind);

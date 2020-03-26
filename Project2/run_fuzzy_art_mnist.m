@@ -71,7 +71,7 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   end
   
   if noisify_test
-      proportion = .90;
+      proportion = .725;
       test_size = size(test_data);
       
       for img = 1:test_size(2)
@@ -93,7 +93,7 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   end
   
   if erase_test
-      proportion = .7;
+      proportion = .5;
       test_size = size(test_data);
       other_test = reshape(test_data, [28 28 10]);
       num_cols_black = round(proportion*28);
