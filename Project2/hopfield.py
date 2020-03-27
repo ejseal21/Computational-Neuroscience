@@ -34,12 +34,13 @@ class HopfieldNet():
             Initially an empty Python list.
         - self.wts: handled by `initialize_wts`
         '''
-        self.num_samps = self.data.shape[0]
+        self.num_samps = data.shape[0]
         self.num_neurons = data.shape[1]
         self.orig_width = orig_width
         self.orig_height = orig_height
         self.energy_hist = []
         self.wts = self.initialize_wts(data)
+
         
 
     def initialize_wts(self, data):
@@ -60,12 +61,14 @@ class HopfieldNet():
 
         NOTE: It might be helpful to average the weights over samples to avoid large weights.
         '''
-        wts = np.zeros(data.shape[1], data.shape[1])
-        for i in data.shape[1]:
-            for j in data.shape[1]:
-                if i != j:
-                    wts[i, j] = (data[i, :].T @ data[i, :])/data.shape[0]
-        return wts
+        [N, M] = data.shape
+        wts = np.zeros((M, M))
+        for i in range(N):
+            wts = wts + np.expand_dims(data[i, :], axis=0).T * np.expand_dims(data[i, :], axis=0)
+        for n in range(M):
+            wts[n, n] = 0
+        return wts/N
+
 
     def energy(self, netAct):
         '''Computes the energy of the current network state / activation
