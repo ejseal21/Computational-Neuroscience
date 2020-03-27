@@ -40,6 +40,7 @@ class HopfieldNet():
         self.orig_height = orig_height
         self.energy_hist = []
         self.wts = self.initialize_wts(data)
+        
 
     def initialize_wts(self, data):
         '''Weights are initialized by applying Hebb's Rule to all pairs of M components in each
@@ -132,4 +133,31 @@ class HopfieldNet():
         '''
         if np.ndim(data) < 2:
             data = np.expand_dims(data, axis=0)
-        pass
+        
+        for samp in data:
+            #step 1: set net activity to test sample
+            net_act = samp
+            
+            #step 2: select the indices of the neurons we are going to update
+            inds = np.random.choice(arange(self.num_neurons), size=((frac*self.num_neurons)//1), replace=False)
+            
+            #step 3: update the selected neurons
+            energy = self.energy(net_act)
+            self.energy_hist.append(energy)
+            for i in inds:
+                net_act = np.sign(np.sum(self.wts[i, :] * net_act, axis=1))
+            
+            #not sure if this should go in the loop over inds - unclear what a time step is
+            if self.energy_hist[-2] - energy < tol:
+                break
+            
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+            fig.suptitle("Current Energy")
+            ax.plot(net_act)
+            display(fig)
+            clear_output(wait=True)
+            plt.pause(1)
+
+
+
