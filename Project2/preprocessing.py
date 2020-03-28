@@ -94,4 +94,11 @@ def recall_error(orig_data, recovered_data, tol=0.5):
     -----------
     float. error rate, a proportion between 0 and 1, of how many vector components are mismatched.
     '''
-    pass
+    [N, hw] = orig_data.shape
+    count = 0
+    for i in range(N):
+        for j in range(hw):
+            if orig_data[i, j] != recovered_data[i, j]:
+                count = count + 1
+    return count/(N*hw)
+    # what is tol as a parameter??????
