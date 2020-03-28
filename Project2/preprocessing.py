@@ -48,10 +48,14 @@ def img2binaryvectors(data, bipolar=True):
     - Center the image then threshold at 0 so that values are either -1 or +1.
     - Reshape so that the result is a 1D vector (see shape above)
     '''
+    #normalize based on dynamic range
     data = data / np.expand_dims(np.max(data, axis=(1, 2)), axis=(1, 2))
     data = data - np.expand_dims(np.min(data, axis=(1, 2)), axis=(1, 2))
+    
+    #subtract median so half of the values are below 0 and half are above
     data = data - np.expand_dims(np.median(data, axis=(1, 2)), axis=(1, 2))
-    data = np.where(data < 0, -1, 1)
+
+    data = np.sign(data)
     data = np.reshape(data, (data.shape[0], -1))
     return data.astype(np.int64)
 

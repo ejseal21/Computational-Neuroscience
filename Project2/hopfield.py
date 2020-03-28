@@ -34,8 +34,9 @@ class HopfieldNet():
             Initially an empty Python list.
         - self.wts: handled by `initialize_wts`
         '''
+        print('data shape', data.shape)
         self.num_samps = data.shape[0]
-        self.num_neurons = data.shape[1]
+        self.num_neurons = orig_width * orig_height
         self.orig_width = orig_width
         self.orig_height = orig_height
         self.energy_hist = []
@@ -61,13 +62,23 @@ class HopfieldNet():
 
         NOTE: It might be helpful to average the weights over samples to avoid large weights.
         '''
-        [N, M] = data.shape
-        wts = np.zeros((M, M))
-        for i in range(N):
-            wts = wts + np.expand_dims(data[i, :], axis=0).T * np.expand_dims(data[i, :], axis=0)
-        for n in range(M):
+        print('data shape', data.shape)
+        print('self.neurons', self.num_neurons)
+        
+        
+        wts = np.zeros((self.num_neurons, self.num_neurons))#, dtype=np.uint8)#, dtype=object)
+        # wts = np.array(shape=(self.num_neurons, self.num_neurons), dtype=object)
+        print('wts shape', wts.shape)
+        for i in range(self.num_samps):
+            vec = np.expand_dims(data[i, :], axis=0)
+            print(vec)
+            wts = wts + vec.T @ vec
+        for n in range(self.num_neurons):
             wts[n, n] = 0
-        return wts/N
+
+        unique, counts = np.unique(wts/self.num_samps, return_counts=True)
+        print("unique", unique, "\ncounts", counts)
+        return wts/self.num_samps
 
 
     def energy(self, netAct):
