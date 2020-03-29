@@ -49,9 +49,10 @@ def img2binaryvectors(data, bipolar=True):
     - Reshape so that the result is a 1D vector (see shape above)
     '''
     #normalize based on dynamic range
-    data = data / np.expand_dims(np.max(data, axis=(1, 2)), axis=(1, 2))
-    data = data - np.expand_dims(np.min(data, axis=(1, 2)), axis=(1, 2))
-    data = data - np.expand_dims(np.median(data, axis=(1, 2)), axis=(1, 2))
+    #double expand dims rather than use a tuple for backwards compatibility in python versions
+    data = data / np.expand_dims(np.expand_dims(np.max(data, axis=(1, 2)), axis=1), axis=2)
+    data = data - np.expand_dims(np.expand_dims(np.min(data, axis=(1, 2)), axis=1), axis = 2)
+    data = data - np.expand_dims(np.expand_dims(np.median(data, axis=(1, 2)), axis=1), axis = 2)
 
 
     #threshold
