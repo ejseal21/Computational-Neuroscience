@@ -95,14 +95,8 @@ class HopfieldNet():
         -----------
         float. The energy.
         '''
-        # return -1/2 * np.sum(netAct @ self.wts @ netAct)
-        summation = 0
-        for n in range(self.wts.shape[0]):
-            for m in range(self.wts.shape[1]):
-                summation += netAct[n] * self.wts[n, m] * netAct[m]
-
-        return (-1/2) * summation
-
+        return -1/2 * np.sum(netAct @ self.wts @ netAct)
+        
     def predict(self, data, update_frac=0.1, tol=1e-15, verbose=False, show_dynamics=False):
         '''Use each data sample in `data` to look up the associated memory stored in the network.
 
