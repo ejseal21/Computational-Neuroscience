@@ -51,11 +51,11 @@ def img2binaryvectors(data, bipolar=True):
     #normalize based on dynamic range
     data = data / np.expand_dims(np.max(data, axis=(1, 2)), axis=(1, 2))
     data = data - np.expand_dims(np.min(data, axis=(1, 2)), axis=(1, 2))
-    
-    #subtract median so half of the values are below 0 and half are above
     data = data - np.expand_dims(np.median(data, axis=(1, 2)), axis=(1, 2))
 
-    data = np.sign(data)
+
+    #threshold
+    data = np.where(data <= 0, -1, 1)
     data = np.reshape(data, (data.shape[0], -1))
     return data.astype(np.int64)
 
@@ -94,11 +94,4 @@ def recall_error(orig_data, recovered_data, tol=0.5):
     -----------
     float. error rate, a proportion between 0 and 1, of how many vector components are mismatched.
     '''
-    [N, hw] = orig_data.shape
-    count = 0
-    for i in range(N):
-        for j in range(hw):
-            if orig_data[i, j] != recovered_data[i, j]:
-                count = count + 1
-    return count/(N*hw)
-    # what is tol as a parameter??????
+    pass
