@@ -51,8 +51,8 @@ def img2binaryvectors(data, bipolar=True):
     #normalize based on dynamic range
     #double expand dims rather than use a tuple for backwards compatibility in python versions
     data = data / np.expand_dims(np.expand_dims(np.max(data, axis=(1, 2)), axis=1), axis=2)
-    data = data - np.expand_dims(np.expand_dims(np.min(data, axis=(1, 2)), axis=1), axis = 2)
-    data = data - np.expand_dims(np.expand_dims(np.median(data, axis=(1, 2)), axis=1), axis = 2)
+    data = data - np.expand_dims(np.expand_dims(np.min(data, axis=(1, 2)), axis=1), axis=2)
+    data = data - np.expand_dims(np.expand_dims(np.median(data, axis=(1, 2)), axis=1), axis=2)
 
 
     #threshold
@@ -95,4 +95,10 @@ def recall_error(orig_data, recovered_data, tol=0.5):
     -----------
     float. error rate, a proportion between 0 and 1, of how many vector components are mismatched.
     '''
-    pass
+    [N, hw] = orig_data.shape
+    count = 0
+    for i in range(N):
+        for j in range(hw):
+            if orig_data[i, j] != recovered_data[i, j]:
+                count = count + 1
+    return count/(N*hw)
