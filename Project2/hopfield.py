@@ -116,7 +116,7 @@ class HopfieldNet():
         # return (-1/2) * summation
 
     def predict(self, data, update_frac=0.1, tol=1e-15, verbose=False, show_dynamics=False):
-        '''Use each data sample in `data` to look up the associated memory stored in the network.
+        ''' Use each data sample in `data` to look up the associated memory stored in the network.
 
         Parameters:
         -----------
