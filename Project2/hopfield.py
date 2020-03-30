@@ -161,7 +161,7 @@ class HopfieldNet():
         '''
         if np.ndim(data) < 2:
             data = np.expand_dims(data, axis=0)
-        
+        preds = np.zeros((data.shape[0], data.shape[1]))
         for samp in data:
             #step 1: set net activity to test sample
             net_act = np.expand_dims(samp, 1)
@@ -176,6 +176,7 @@ class HopfieldNet():
                 net_act[i] = np.sign(np.sum(self.wts[i, :] @ net_act))
             #not sure if this should go in the loop over inds - unclear what a time step is
                 if self.energy_hist[-2] - energy < tol:
+                    preds[samp, :] = self.wts[samp, :]
                     break
             if show_dynamics:
                 fig = plt.figure()
@@ -185,3 +186,5 @@ class HopfieldNet():
                 display(fig)
                 clear_output(wait=True)
                 plt.pause(1)
+
+            return preds
