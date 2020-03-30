@@ -95,8 +95,26 @@ class HopfieldNet():
         -----------
         float. The energy.
         '''
-        return -1/2 * np.sum(netAct @ self.wts @ netAct)
-        
+        netAct = np.squeeze(netAct)
+        return -1/2*(np.sum(np.expand_dims(netAct, axis=0) @ self.wts @ np.expand_dims(netAct, axis=1)))
+        # prod = (np.expand_dims(netAct, axis=0) @ np.expand_dims(netAct, axis=1))
+        # print(prod.shape)
+        # summa = np.sum(self.wts @ np.squeeze(prod))
+        # return -1/2 * summa
+        # summation = 0
+        # netAct1m = np.expand_dims(netAct, axis=0)
+        # netActm1 = np.expand_dims(netAct, axis=1)
+        # # for n in range(self.wts.shape[0]):
+        # #     summation += np.sum(netAct1m[:, n] * self.wts[n,m] * netActm1[n, :])
+        # # return (-1/2) * summation
+        # # return -1/2 * np.sum(np.expand_dims(netAct, axis=0) @ self.wts @ np.expand_dims(netAct, axis=1))
+        # # return -1/2 * np.sum(netAct @ self.wts @ netAct)
+        # # summation = 0
+        # for n in range(self.wts.shape[0]):
+        #     for m in range(self.wts.shape[1]):
+        #         summation += netAct1m[:,n] * self.wts[n, m] * netActm1[m, :]
+        # return (-1/2) * summation
+
     def predict(self, data, update_frac=0.1, tol=1e-15, verbose=False, show_dynamics=False):
         '''Use each data sample in `data` to look up the associated memory stored in the network.
 
@@ -146,28 +164,24 @@ class HopfieldNet():
         
         for samp in data:
             #step 1: set net activity to test sample
-            net_act = samp
+            net_act = np.expand_dims(samp, 1)
             
             #step 2: select the indices of the neurons we are going to update
-            inds = np.random.choice(arange(self.num_neurons), size=((frac*self.num_neurons)//1), replace=False)
+            inds = np.random.choice(np.arange(self.num_neurons), size=((int(update_frac*self.num_neurons))), replace=False)
             
             #step 3: update the selected neurons
             energy = self.energy(net_act)
             self.energy_hist.append(energy)
             for i in inds:
-                net_act = np.sign(np.sum(self.wts[i, :] * net_act, axis=1))
-            
+                net_act[i] = np.sign(np.sum(self.wts[i, :] @ net_act))
             #not sure if this should go in the loop over inds - unclear what a time step is
-            if self.energy_hist[-2] - energy < tol:
-                break
-            
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-            fig.suptitle("Current Energy")
-            ax.plot(net_act)
-            display(fig)
-            clear_output(wait=True)
-            plt.pause(1)
-
-
-
+                if self.energy_hist[-2] - energy < tol:
+                    break
+            if show_dynamics:
+                fig = plt.figure()
+                ax = fig.add_subplot(1, 1, 1)
+                fig.suptitle("Current Energy")
+                ax.plot(net_act)
+                display(fig)
+                clear_output(wait=True)
+                plt.pause(1)
