@@ -34,7 +34,6 @@ class HopfieldNet():
             Initially an empty Python list.
         - self.wts: handled by `initialize_wts`
         '''
-        print('data shape', data.shape)
         self.num_samps = data.shape[0]
         self.num_neurons = orig_width * orig_height
         self.orig_width = orig_width
@@ -62,22 +61,13 @@ class HopfieldNet():
 
         NOTE: It might be helpful to average the weights over samples to avoid large weights.
         '''
-        print('data shape', data.shape)
-        print('self.neurons', self.num_neurons)
-        
-        
-        wts = np.zeros((self.num_neurons, self.num_neurons))#, dtype=np.uint8)#, dtype=object)
-        # wts = np.array(shape=(self.num_neurons, self.num_neurons), dtype=object)
-        print('wts shape', wts.shape)
+        wts = np.zeros((self.num_neurons, self.num_neurons))
         for i in range(self.num_samps):
             vec = np.expand_dims(data[i, :], axis=0)
-            print(vec)
             wts = wts + vec.T @ vec
         for n in range(self.num_neurons):
             wts[n, n] = 0
 
-        unique, counts = np.unique(wts/self.num_samps, return_counts=True)
-        print("unique", unique, "\ncounts", counts)
         return wts/self.num_samps
 
 
@@ -95,25 +85,8 @@ class HopfieldNet():
         -----------
         float. The energy.
         '''
-        netAct = np.squeeze(netAct)
+        netAct = np.squeeze(netAct) #we don't want to expand dims more than once
         return -1/2*(np.sum(np.expand_dims(netAct, axis=0) @ self.wts @ np.expand_dims(netAct, axis=1)))
-        # prod = (np.expand_dims(netAct, axis=0) @ np.expand_dims(netAct, axis=1))
-        # print(prod.shape)
-        # summa = np.sum(self.wts @ np.squeeze(prod))
-        # return -1/2 * summa
-        # summation = 0
-        # netAct1m = np.expand_dims(netAct, axis=0)
-        # netActm1 = np.expand_dims(netAct, axis=1)
-        # # for n in range(self.wts.shape[0]):
-        # #     summation += np.sum(netAct1m[:, n] * self.wts[n,m] * netActm1[n, :])
-        # # return (-1/2) * summation
-        # # return -1/2 * np.sum(np.expand_dims(netAct, axis=0) @ self.wts @ np.expand_dims(netAct, axis=1))
-        # # return -1/2 * np.sum(netAct @ self.wts @ netAct)
-        # # summation = 0
-        # for n in range(self.wts.shape[0]):
-        #     for m in range(self.wts.shape[1]):
-        #         summation += netAct1m[:,n] * self.wts[n, m] * netActm1[m, :]
-        # return (-1/2) * summation
 
     def predict(self, data, update_frac=0.1, tol=1e-15, verbose=False, show_dynamics=False):
         ''' Use each data sample in `data` to look up the associated memory stored in the network.
@@ -169,15 +142,20 @@ class HopfieldNet():
             #step 2: select the indices of the neurons we are going to update
             inds = np.random.choice(np.arange(self.num_neurons), size=((int(update_frac*self.num_neurons))), replace=False)
             
-            #step 3: update the selected neurons
+            #update energy_hist
             energy = self.energy(net_act)
             self.energy_hist.append(energy)
+            
+            #update net_act, and break out if energy didn't change
             for i in inds:
                 net_act[i] = np.sign(np.sum(self.wts[i, :] @ net_act))
-            #not sure if this should go in the loop over inds - unclear what a time step is
-                if self.energy_hist[-2] - energy < tol:
+                
+                #not sure if this should go in the loop over inds - unclear what a time step is
+                if i > 0 and self.energy_hist[-2] - energy < tol:
                     preds[samp, :] = self.wts[samp, :]
                     break
+            
+            #plotting
             if show_dynamics:
                 fig = plt.figure()
                 ax = fig.add_subplot(1, 1, 1)
@@ -186,5 +164,5 @@ class HopfieldNet():
                 display(fig)
                 clear_output(wait=True)
                 plt.pause(1)
-
-            return preds
+        
+        return preds
