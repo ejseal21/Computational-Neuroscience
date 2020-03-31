@@ -1,12 +1,13 @@
 '''hopfield.py
 Simulates a Hopfield network
 CS443: Computational Neuroscience
-YOUR NAMES HERE
+Ethan, Cole, Alice
 Project 2: Content Addressable Memory
 '''
 import numpy as np
 import matplotlib.pyplot as plt
 from IPython.display import display, clear_output
+import preprocessing as prep
 
 
 class HopfieldNet():
@@ -135,32 +136,40 @@ class HopfieldNet():
         if np.ndim(data) < 2:
             data = np.expand_dims(data, axis=0)
         preds = np.zeros((data.shape[0], data.shape[1]))
+
         for samp in data:
             #step 1: set net activity to test sample
-            net_act = np.expand_dims(samp, 1)
+            net_act = np.expand_dims(samp, 0)
             
             #step 2: select the indices of the neurons we are going to update
             inds = np.random.choice(np.arange(self.num_neurons), size=((int(update_frac*self.num_neurons))), replace=False)
-            
+
             #update energy_hist
             energy = self.energy(net_act)
             self.energy_hist.append(energy)
             
             #update net_act, and break out if energy didn't change
             for i in inds:
-                net_act[i] = np.sign(np.sum(self.wts[i, :] @ net_act))
+                # print(self.wts[i, :].shape)
+                # print(net_act[:, i].shape)
+                net_act[:, i] = np.sign(np.sum(np.expand_dims(self.wts[i, :], 1) @ np.expand_dims(net_act[:, i], 1)))
                 
                 #not sure if this should go in the loop over inds - unclear what a time step is
-                if i > 0 and self.energy_hist[-2] - energy < tol:
+                if i > 0 and self.energy_hist[-1] - energy < tol:
                     preds[samp, :] = self.wts[samp, :]
                     break
             
-            #plotting
+            # plotting
             if show_dynamics:
                 fig = plt.figure()
                 ax = fig.add_subplot(1, 1, 1)
                 fig.suptitle("Current Energy")
-                ax.plot(net_act)
+                # print(net_act)
+                # ax.plot(net_act)
+
+                img = prep.vec2img(net_act, 128, 128)
+                imgplot = plt.imshow(img[0], cmap='gray')
+                
                 display(fig)
                 clear_output(wait=True)
                 plt.pause(1)
