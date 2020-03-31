@@ -74,7 +74,7 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
       
       proportion = .725;
       sizes = size(test_data);
-      
+      figure(3)
       for img = 1:sizes(2)
           for pixel = 1:sizes(1)
             chance = rand;
@@ -92,11 +92,11 @@ function [mnist_test_y, code_inds, C] =  run_fuzzy_art_mnist(mnist_path, sets, .
   end
   
   if erase_test
-      proportion = .5;
+      proportion = .51;
       sizes = size(test_data);
       other_test = reshape(test_data, [28 28 10]);
       num_cols_black = round(proportion*28);
-
+      figure(4)
       for img = 1:sizes(2)
           for col = 1:num_cols_black
               other_test(col,:,img) = 0;
