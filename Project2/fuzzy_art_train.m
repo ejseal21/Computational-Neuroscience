@@ -47,7 +47,7 @@ function [C, w_code] = fuzzy_art_train(data, verbose, show_plot, varargin)
       case 'C_max'
         C_max = varargin{arg+1};
       case 'fast'
-        fast = varargin{arg+1};
+        fast = varargin(arg+1);
     end
   end
   

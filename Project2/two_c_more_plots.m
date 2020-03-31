@@ -1,5 +1,5 @@
 function [mnist_test_y, code_inds, C] =  two_c_more_plots(mnist_path, sets, ...
-    num_exemplars, num_classes, noisify_test, erase_test, row_erase, backwards_row_erase, central_erase, plot_wts, plot_recall, varargin)
+    num_exemplars, num_classes, noisify_test, erase_test, row_erase, backwards_row_erase, central_erase, edge_erase, plot_wts, plot_recall, varargin)
   %%run_fuzzy_art_mnist Trains fuzzy ART on the MNIST dataset and recover "memories" prompted by the test set using the
   %%Fuzzy ART predict function. A memory refers to the weights for the winning code unit for each test data sample.
   %
@@ -161,12 +161,35 @@ function [mnist_test_y, code_inds, C] =  two_c_more_plots(mnist_path, sets, ...
       other_test = reshape(test_data, [28 28 10]);
       num_rows_black = (1-proportion)*28;
       figure(7)
-      disp((.5*num_rows_black))
-      disp(28 - (.5*num_rows_black))
       for img = 1:sizes(2)
           for row = round(.5*num_rows_black):(28 - round(.5*num_rows_black))
               for col = round(.5*num_rows_black):(28 - round(.5*num_rows_black))
                 other_test(col, row, img) = 0;
+              end
+          end
+      end
+      
+      test = reshape(other_test, [784 10]);
+      c_pred = fuzzy_art_predict(C, w_code, test, 1);
+      
+      for img =  1:sizes(2)
+        subplot(sizes(2), 2, (2*img)-1), imshow(reshape(test(:,img), [28 28])');
+        subplot(sizes(2), 2, 2*img), imshow(reshape(w_code(1:784, c_pred(img)), [28 28])');
+      end
+  end
+  
+  if edge_erase
+      proportion = .57;
+      sizes = size(test_data);
+      other_test = reshape(test_data, [28 28 10]);
+      num_rows_black = proportion*28;
+      figure(7);
+      for img = 1:sizes(2)
+          for row = 1:28
+              for col = 1:28
+                  if (row <= (.5*num_rows_black) || row >= (28 - (.5*num_rows_black))) ||(col <= (.5*num_rows_black) || col >= (28 - (.5*num_rows_black)))
+                          other_test(col, row, img) = 0;
+                  end
               end
           end
       end
