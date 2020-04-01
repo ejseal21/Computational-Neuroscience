@@ -138,44 +138,50 @@ class HopfieldNet():
         preds = np.zeros((data.shape[0], data.shape[1]))
 
         for samp in range(data.shape[0]):
-            #step 1: set net activity to test sample
+            #set net activity to test sample
             net_act = np.expand_dims(data[samp], 0)
-            
-            #step 2: select the indices of the neurons we are going to update
-            inds = np.random.choice(np.arange(self.num_neurons), size=((int(update_frac*self.num_neurons))), replace=False)
 
             #update energy_hist
-            
             energy = self.energy(net_act)
             self.energy_hist.append(energy)
                 
             curr_energy = energy - 1
-            #update net_act, and break out if energy didn't change
 
             if show_dynamics:
                 fig = plt.figure()
                 ax = fig.add_subplot(1, 1, 1)
                 fig.suptitle("Current Energy")
                     
+            iterations = 0
 
+            #while energy is still changing
             while abs(curr_energy - energy) > tol:
-                for i in inds:
-                    net_act[:, i] = np.sign(self.wts[i, :] @ net_act.T)
+                iterations += 1
 
+                #make random indices
+                inds = np.random.choice(np.arange(self.num_neurons), size=((int(update_frac*self.num_neurons))), replace=False)
+                
+                #update neurons at selected indices using update rule
+                for i in inds:
+                    net_act[:, i] = np.sign(np.sum(np.expand_dims(self.wts[:, i], 0) @ net_act.T))
+
+                #update energy
                 energy = curr_energy
                 curr_energy = self.energy(net_act)
                 self.energy_hist.append(curr_energy)
                 
                 # plotting
                 if show_dynamics:
-                    # ax.plot(net_act)
                     img = prep.vec2img(net_act, self.orig_width, self.orig_height)
                     imgplot = plt.imshow(img[0], cmap='gray')
-                    
                     display(fig)
                     clear_output(wait=True)
                     plt.pause(1)
+
+            if verbose:
+                print("iterations", iterations)
             
+            #stabilized net_act is the prediction
             preds[samp, :] = net_act
 
         return preds
