@@ -176,7 +176,7 @@ class HopfieldNet():
                     imgplot = plt.imshow(img[0], cmap='gray')
                     display(fig)
                     clear_output(wait=True)
-                    plt.pause(1)
+                    plt.pause(0.05)
 
             if verbose:
                 print("iterations", iterations)
