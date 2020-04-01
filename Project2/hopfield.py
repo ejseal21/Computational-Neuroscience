@@ -69,6 +69,7 @@ class HopfieldNet():
         for n in range(self.num_neurons):
             wts[n, n] = 0
 
+
         return wts/self.num_samps
 
 
@@ -133,6 +134,7 @@ class HopfieldNet():
 
         NOTE: Your code should work even if num_test_samps=1.
         '''
+        data = np.copy(data)
         if np.ndim(data) < 2:
             data = np.expand_dims(data, axis=0)
         preds = np.zeros((data.shape[0], data.shape[1]))
@@ -148,9 +150,9 @@ class HopfieldNet():
             curr_energy = energy - 1
 
             if show_dynamics:
-                fig = plt.figure()
+                fig = plt.figure(1)
                 ax = fig.add_subplot(1, 1, 1)
-                fig.suptitle("Current Energy")
+                # fig.suptitle("Current Energy")
                     
             iterations = 0
 
@@ -172,11 +174,12 @@ class HopfieldNet():
                 
                 # plotting
                 if show_dynamics:
+                    ax.set_title(str(curr_energy))
                     img = prep.vec2img(net_act, self.orig_width, self.orig_height)
-                    imgplot = plt.imshow(img[0], cmap='gray')
+                    ax.imshow(img[0], cmap='gray')
                     display(fig)
                     clear_output(wait=True)
-                    plt.pause(0.05)
+                    plt.pause(.05)
 
             if verbose:
                 print("iterations", iterations)
