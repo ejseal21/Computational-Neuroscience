@@ -1,7 +1,7 @@
 '''competitive_nets.py
 Simulates various competitive networks
 CS443: Computational Neuroscience
-YOUR NAMES HERE
+Alice Cole Ethan
 Project 3: Competitive Networks
 '''
 import numpy as np
@@ -31,8 +31,16 @@ def leaky_integrator(I, A, B, t_max, dt):
     ndarray. shape=(n_steps, N).
         Each unit in the network's activation at all the integration time steps.
     '''
-    pass
-
+    ret = np.empty((1, I.shape[0]))
+    x = np.ones((1, I.shape[0]))
+    t = 0
+    while t < t_max:
+        t += dt
+        for i in range(I.shape[0]):
+            change = (-A * x[:, i] + (B - x[:, i]) * I[i])
+            x = x + change
+            ret = np.vstack((ret, x))
+    return ret
 
 def sum_not_I(I):
     '''Sums all the other elements in `I` across all dimensions except for the one in each position
