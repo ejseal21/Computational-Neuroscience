@@ -33,13 +33,21 @@ def leaky_integrator(I, A, B, t_max, dt):
     '''
     ret = np.empty((1, I.shape[0]))
     x = np.ones((1, I.shape[0]))
+    #time
     t = 0
+    #while time is less than max time do the following
     while t < t_max:
+        #time increase in iteration
         t += dt
+        #iterate over all Inputs
+        # change = []
         for i in range(I.shape[0]):
-            change = (-A * x[:, i] + (B - x[:, i]) * I[i])
-            x = x + change
-            ret = np.vstack((ret, x))
+            #notebook equation ot calculate change
+            change = (-A * x[:, i]) + ((B - x[:, i]) * I[i])
+            #add change every time
+            x[:, i] = x[:, i] + change
+        #add the new neurons back to the return every time
+        ret = np.vstack((ret, x))
     return ret
 
 def sum_not_I(I):
