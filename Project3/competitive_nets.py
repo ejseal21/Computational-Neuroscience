@@ -61,8 +61,10 @@ def sum_not_I(I):
     -----------
     ndarray. shape=shape(I).
     '''
-    
-
+    summed = np.sum(I)
+    inds = np.arange(I.size)
+    inds = np.reshape(lin, I.shape)
+    return summed - I[inds]
 
 def lateral_inhibition(I, A, B, t_max, dt):
     '''Shunting network with lateral inhibition
@@ -86,7 +88,23 @@ def lateral_inhibition(I, A, B, t_max, dt):
     ndarray. shape=(n_steps, N).
         Each unit in the network's activation at all the integration time steps.
     '''
-    pass
+    ret = np.empty((1, I.shape[0]))
+    x = np.zeros((1, I.shape[0]))
+    #time
+    t = 0
+    #while time is less than max time do the following
+    while t < t_max:
+        #time increase in iteration
+        t += dt
+        #iterate over all Inputs
+        for i in range(I.shape[0]):
+            #notebook equation to calculate change
+            change = (-A * x[:, i]) + ((B - x[:, i]) * I[i]) - (x[:, i] * sum_not_I(I)[i])
+            #add change every time
+            x[:, i] = x[:, i] + change * dt
+        #add the new neurons back to the return every time
+        ret = np.vstack((ret, x))
+    return ret
 
 
 def dist_dep_net(I, A, B, C, e_sigma, i_sigma, kerSz, t_max, dt):
