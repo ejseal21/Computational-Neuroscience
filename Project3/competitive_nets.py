@@ -40,9 +40,8 @@ def leaky_integrator(I, A, B, t_max, dt):
         #time increase in iteration
         t += dt
         #iterate over all Inputs
-        change = []
         for i in range(I.shape[0]):
-            #notebook equation ot calculate change
+            #notebook equation to calculate change
             change = (-A * x[:, i]) + ((B - x[:, i]) * I[i])
             #add change every time
             x[:, i] = x[:, i] + change * dt
