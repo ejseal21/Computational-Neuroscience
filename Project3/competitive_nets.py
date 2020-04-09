@@ -5,6 +5,7 @@ Alice Cole Ethan
 Project 3: Competitive Networks
 '''
 import numpy as np
+from scipy import ndimage
 
 
 def leaky_integrator(I, A, B, t_max, dt):
@@ -105,7 +106,7 @@ def lateral_inhibition(I, A, B, t_max, dt):
     return ret
 
 
-def dist_dep_net(I, A, B, C, e_sigma, i_sigma, kerSz, t_max, dt):
+def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
     '''Distant-dependent (convolutional) 1D shunting network
 
     Parameters:
@@ -148,7 +149,45 @@ def dist_dep_net(I, A, B, C, e_sigma, i_sigma, kerSz, t_max, dt):
     NOTE: You may either write your own convolution code (e.g. based on last semester) or use
     the built-in one in scipy.
     '''
-    pass
+
+    exc = np.empty((kerSz, 1))
+    for k in range(kerSz):
+        exc[k, :] = np.power(np.e, -1/(exc_sigma**2) * (k - (kerSz // 2) ** 2))
+
+    inh = np.empty((kerSz, 1))
+    for k in range(kerSz):
+        inh[k, :] = np.power(np.e, 1/inh_sigma**2 * (k - (kerSz // 2) ** 2))
+
+
+    ret = np.empty((1, I.shape[0]))
+    x = np.zeros((1, I.shape[0]))
+
+    #np.pad doesn't support axis argument, so need to squeeze first, then pad, then expand dims again
+    I = np.expand_dims(np.pad(np.squeeze(I), int(np.ceil((kerSz - 1) / 2))), 1)
+    #time
+    t = 0
+    #while time is less than max time do the following
+    while t < t_max:
+        #time increase in iteration
+        t += dt
+        #iterate over all Inputs
+        for i in range(1, I.shape[0] - 1):
+            #notebook equation to calculate change
+            # not_i = sum_not_I(I)[i]
+            print('kerSz//2', kerSz//2)
+            print('i+ker...', i+kerSz//2 + 1)
+            print('I shape', I[max(i-kerSz//2, 0): i+kerSz//2 + 1].shape)
+            print('ker shape', exc.shape)
+            change = (-A * x[:, i]) + ((B - x[:, i]) * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], exc)) - (C + x[:, i]) * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], inh)
+            
+            print('x', x[:, i].shape)
+            print(change.shape)
+
+            #add change every time
+            x[:, i] = x[:, i] + np.sum(change) * dt
+        #add the new neurons back to the return every time
+        ret = np.vstack((ret, x))
+    return ret
 
 
 def dist_dep_net_image(I, A, i_sigma, kerSz, t_max, dt):
@@ -239,7 +278,6 @@ def rcf(I, A, B, fun_str, t_max, dt, F=0):
         #add the new neurons back to the return every time
         ret = np.vstack((ret, x))
     return ret
-
 
 def f_function(fun_str, x, F=0):
     '''
