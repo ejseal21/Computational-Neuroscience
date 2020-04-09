@@ -100,8 +100,6 @@ def lateral_inhibition(I, A, B, t_max, dt):
         for i in range(I.shape[0]):
             #notebook equation to calculate change
             not_i = sum_not_I(I)[i]
-            print('not_i:', not_i)
-            print('x[:, i]:', x[:, i])
             change = (-A * x[:, i]) + ((B - x[:, i]) * I[i]) - (x[:, i] * not_i)
             #add change every time
             x[:, i] = x[:, i] + change * dt
