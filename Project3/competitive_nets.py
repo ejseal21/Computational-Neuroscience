@@ -221,6 +221,7 @@ def rcf(I, A, B, fun_str, t_max, dt, F=0):
     ndarray. shape=(n_steps, N).
         Each unit in the network's activation at all the integration time steps.
     '''
+    I = np.asarray(I)
     ret = np.empty((1, I.shape[0]))
     x = I
     #time
@@ -233,7 +234,7 @@ def rcf(I, A, B, fun_str, t_max, dt, F=0):
         #iterate over all Inputs
         for i in range(I.shape[0]):
             #notebook equation to calculate change
-            change = (-A * x[i]) + ((B - x[i]) * f[i] - x[i] * sum_not_I(f)[i]
+            change = (-A * x[i]) + (B - x[i]) * f[i] - x[i] * sum_not_I(f)[i]
             #add change every time
             x[i] = x[i] + change * dt
         #add the new neurons back to the return every time
