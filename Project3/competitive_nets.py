@@ -61,10 +61,7 @@ def sum_not_I(I):
     -----------
     ndarray. shape=shape(I).
     '''
-    summed = np.sum(I)
-    inds = np.arange(I.size)
-    inds = np.reshape(inds, I.shape)
-    return summed - I[inds]
+    return np.sum(I) - I
 
 def lateral_inhibition(I, A, B, t_max, dt):
     '''Shunting network with lateral inhibition
