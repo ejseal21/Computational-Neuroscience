@@ -178,7 +178,9 @@ def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
             print('i+ker...', i+kerSz//2 + 1)
             print('I shape', I[max(i-kerSz//2, 0): i+kerSz//2 + 1].shape)
             print('ker shape', exc.shape)
-            change = (-A * x[:, i]) + ((B - x[:, i]) * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], exc)) - (C + x[:, i]) * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], inh)
+            change = (-A * x[:, i]) + (B - x[:, i]) 
+            change = change * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], exc)  
+            change = change - (C + x[:, i] * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], inh))
             
             print('x', x[:, i].shape)
             print(change.shape)
