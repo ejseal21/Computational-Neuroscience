@@ -224,4 +224,35 @@ def rcf(I, A, B, fun_str, t_max, dt, F=0):
     ndarray. shape=(n_steps, N).
         Each unit in the network's activation at all the integration time steps.
     '''
-    pass
+    ret = np.empty((1, I.shape[0]))
+    x = I
+    #time
+    t = 0
+    #while time is less than max time do the following
+    while t < t_max:
+        #time increase in iteration
+        t += dt
+        f = f_function(fun_str, x, F)
+        #iterate over all Inputs
+        for i in range(I.shape[0]):
+            #notebook equation to calculate change
+            change = (-A * x[i]) + ((B - x[i]) * f[i] - x[i] * sum_not_I(f)[i]
+            #add change every time
+            x[i] = x[i] + change * dt
+        #add the new neurons back to the return every time
+        ret = np.vstack((ret, x))
+    return ret
+
+
+def f_function(fun_str, x, F=0):
+    '''
+    '''
+    if fun_str == 'linear':
+        f = x
+    elif fun_str == 'faster_than_linear':
+        f = np.square(x)
+    elif fun_str == 'slower_than_linear':
+        f = np.true_divide(x, x+F)
+    else:           #sigmoid
+        f = np.true_divide(np.square(x), F+np.square(x))
+    return f
