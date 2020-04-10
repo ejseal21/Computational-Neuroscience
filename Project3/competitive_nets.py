@@ -167,14 +167,14 @@ def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
     while t < t_max:
         t += dt
         #iterate over all Inputs
-        for i in range(pad, I.shape[0] - 1):
+        for i in range(pad, I.shape[0] - pad):
             #notebook equation to calculate change
             inhibitory = (-A * x[:, i])
             
             #convolution?
             for j in range(-pad, pad):
-                Esum = I[i+j, :] * exc[j+1]
-                Ssum = I[i+j, :] * inh[j+1]
+                Esum = I[i+j, :] * exc[j+pad]
+                Ssum = I[i+j, :] * inh[j+pad]
 
             excitatory = (B - x[:, i]) * Esum#np.sum(ndimage.convolve(I[i-pad: i+pad], exc))
             inhibitory2 = (C + x[:, i]) * Ssum#np.sum(ndimage.convolve(I[i-pad: i+pad], inh)))
@@ -188,7 +188,7 @@ def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
     return ret[:, pad:-pad]
 
 
-def dist_dep_net_image(I, A, i_sigma, kerSz, t_max, dt):
+def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     '''Distant-dependent (convolutional) 2D shunting network
 
     NOTE: If the network simulation is too slow on your machine (e.g. you are using very large images),
@@ -228,7 +228,41 @@ def dist_dep_net_image(I, A, i_sigma, kerSz, t_max, dt):
     NOTE: You may either write your own convolution code (e.g. based on last semester) or use
     the built-in one in scipy.
     '''
-    pass
+    inh = np.empty((kerSz, 1))
+    for k in range(kerSz):
+        inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
+    inh = inh @ inh.T
+
+
+    pad = int(np.ceil((kerSz - 1) / 2))
+    I = np.pad(I, pad)
+
+    ret = np.empty((1, I.shape[0], I.shape[1]))
+    x = np.zeros((1, I.shape[0], I.shape[1]))
+    t = 0
+    while t < t_max:
+        t += dt
+        #iterate over all Inputs
+        for i in range(pad, I.shape[0] - pad):
+            for j in range(pad, I.shape[1] - pad):
+                #notebook equation to calculate change
+                inhibitory = (-A * x[:, i])
+                
+                #convolution?
+                for k in range(-pad, pad):
+                    for l in range(-pad, pad):
+                        Ssum = I[i+k, j+l] * inh[k+pad, l+pad]
+
+                excitatory = I[i, j]
+                inhibitory2 = x[:, i] * Ssum
+                change = inhibitory + excitatory - inhibitory2
+                
+                #add change every time
+                x[:, i] = x[:, i] + change * dt
+        
+        #add the new activations back to the return every time
+        ret = np.vstack((ret, x))
+    return ret[:, pad:-pad, pad:-pad]
 
 
 def rcf(I, A, B, fun_str, t_max, dt, F=0):
