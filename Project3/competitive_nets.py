@@ -152,12 +152,10 @@ def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
     exc = np.empty((kerSz, 1))
     for k in range(kerSz):
         exc[k, :] = np.power(np.e, (-1/exc_sigma**2) * (k - (kerSz // 2)) ** 2)
-    print('Excitatory Kernel:', exc)
 
     inh = np.empty((kerSz, 1))
     for k in range(kerSz):
         inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
-    print('Inhibitory Kernel:', inh)
 
 
     pad = int(np.ceil((kerSz - 1) / 2))
