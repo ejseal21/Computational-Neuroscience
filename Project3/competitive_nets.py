@@ -149,50 +149,45 @@ def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
     NOTE: You may either write your own convolution code (e.g. based on last semester) or use
     the built-in one in scipy.
     '''
-
     exc = np.empty((kerSz, 1))
     for k in range(kerSz):
-        exc[k, :] = np.power(np.e, -1/(exc_sigma**2) * (k - (kerSz // 2) ** 2))
+        exc[k, :] = np.power(np.e, (-1/exc_sigma**2) * (k - (kerSz // 2)) ** 2)
+    print('Excitatory Kernel:', exc)
 
     inh = np.empty((kerSz, 1))
     for k in range(kerSz):
-        inh[k, :] = np.power(np.e, 1/inh_sigma**2 * (k - (kerSz // 2) ** 2))
+        inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
+    print('Inhibitory Kernel:', inh)
 
+
+    pad = int(np.ceil((kerSz - 1) / 2))
+    I = np.expand_dims(np.pad(np.squeeze(I), pad), 1)
 
     ret = np.empty((1, I.shape[0]))
     x = np.zeros((1, I.shape[0]))
-
-    #np.pad doesn't support axis argument, so need to squeeze first, then pad, then expand dims again
-    I = np.expand_dims(np.pad(np.squeeze(I), int(np.ceil((kerSz - 1) / 2))), 1)
-    #time
     t = 0
-    #while time is less than max time do the following
     while t < t_max:
-        #time increase in iteration
         t += dt
         #iterate over all Inputs
-        for i in range(1, I.shape[0] - 1):
+        for i in range(pad, I.shape[0] - 1):
             #notebook equation to calculate change
-            # not_i = sum_not_I(I)[i]
-            print('kerSz//2', kerSz//2)
-            print('i+ker...', i+kerSz//2 + 1)
-            print('I shape', I[max(i-kerSz//2, 0): i+kerSz//2 + 1].shape)
-            print('ker shape', exc.shape)
-            change = (-A * x[:, i]) + (B - x[:, i]) 
-            print("made it throught the initial addition")
-            change = change * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], exc)  
-            print("made it through the excitatory convolution")
-            change = change - (C + x[:, i] * ndimage.convolve(I[i-kerSz//2: i+kerSz//2], inh))
-            print("made it through all of change update, including inhibitory convolution")
+            inhibitory = (-A * x[:, i])
             
-            print('x', x[:, i].shape)
-            print(change.shape)
+            #convolution?
+            for j in range(-pad, pad):
+                Esum = I[i+j, :] * exc[j+1]
+                Ssum = I[i+j, :] * inh[j+1]
 
+            excitatory = (B - x[:, i]) * Esum#np.sum(ndimage.convolve(I[i-pad: i+pad], exc))
+            inhibitory2 = (C + x[:, i]) * Ssum#np.sum(ndimage.convolve(I[i-pad: i+pad], inh)))
+            change = inhibitory + excitatory - inhibitory2
+            
             #add change every time
-            x[:, i] = x[:, i] + np.sum(change) * dt
-        #add the new neurons back to the return every time
+            x[:, i] = x[:, i] + change * dt
+        
+        #add the new activations back to the return every time
         ret = np.vstack((ret, x))
-    return ret
+    return ret[:, pad:-pad]
 
 
 def dist_dep_net_image(I, A, i_sigma, kerSz, t_max, dt):
