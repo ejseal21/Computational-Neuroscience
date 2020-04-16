@@ -52,7 +52,7 @@ class CQNet:
     def inhibitory(self, decay, capacity, threshold):
         """ This is the inhibitory wi layer."""
         # print(self.w)
-        self.w = np.zeros(self.w.shape, dtype = "float32")
+        # self.w = np.zeros(self.w.shape, dtype = "float32")
         for i in range(self.x.shape[0]):
             # print(self.y[i]-threshold)
             self.w[i] += -decay * self.w[i] + (capacity - self.w[i]) * np.where(self.y[i]-threshold > 0, self.y[i]-threshold, 0)
