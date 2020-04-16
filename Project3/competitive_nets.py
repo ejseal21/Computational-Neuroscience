@@ -5,7 +5,9 @@ Alice Cole Ethan
 Project 3: Competitive Networks
 '''
 import numpy as np
+import cv2
 from scipy import ndimage
+from scipy import signal
 
 
 def leaky_integrator(I, A, B, t_max, dt):
@@ -234,37 +236,57 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     for k in range(kerSz):
         inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
     inh = inh @ inh.T
-    print(inh)
+    # print(inh)
 
-    pad = int(np.ceil((kerSz - 1) / 2))
-    I = np.pad(I, pad)
-
-    ret = np.empty((1, I.shape[0], I.shape[1]))
-    x = np.zeros((1, I.shape[0], I.shape[1]))
+    conv = signal.convolve2d(I, inh)
+    # print(conv.shape)
     t = 0
+    x = np.zeros((1, I.shape[0], I.shape[1]))
+    # print(x.shape)
+    # ret = np.empty((1, I.shape[0], I.shape[1]))
+    ret=[]
+    
     while t < t_max:
         t += dt
-        #iterate over all Inputs
-        for i in range(pad, I.shape[0] - pad):
-            for j in range(pad, I.shape[1] - pad):
-                #notebook equation to calculate change
-                inhibitory = (-A * x[:, i])
-                Ssum = 0
-                #convolution?
-                for k in range(-pad, pad):
-                    for l in range(-pad, pad):
-                        Ssum += I[i+k, j+l] * inh[k+pad, l+pad]
+        # print(t)
+        for i in range(I.shape[0]):
+            for j in range(I.shape[1]):
+                change = -A * x[0, i, j] + I[i, j] - x[0, i, j] * conv[i, j]
+                x[0, i, j] = x[0, i, j] + change * dt
+                # ret[0, i, j] = x[0, i, j]
+        # ret = np.vstack((ret, x))
+        ret.append(x)
+    return ret
 
-                excitatory = I[i, j]
-                inhibitory2 = x[:, i] * Ssum
-                change = inhibitory + excitatory - inhibitory2
+    # pad = int(np.ceil((kerSz - 1) / 2))
+    # I = np.pad(I, pad)
+
+    # ret = np.empty((1, I.shape[0], I.shape[1]))
+    # x = np.zeros((1, I.shape[0], I.shape[1]))
+    # t = 0
+    # while t < t_max:
+    #     t += dt
+    #     #iterate over all Inputs
+    #     for i in range(pad, I.shape[0] - pad):
+    #         for j in range(pad, I.shape[1] - pad):
+    #             #notebook equation to calculate change
+    #             inhibitory = (-A * x[:, i])
+    #             Ssum = 0
+    #             #convolution?
+    #             for k in range(-pad, pad+1):
+    #                 for l in range(-pad, pad+1):
+    #                     Ssum += I[i+k, j+l] * inh[k+pad, l+pad]
+
+    #             excitatory = I[i, j]
+    #             inhibitory2 = x[:, i] * Ssum
+    #             change = inhibitory + excitatory - inhibitory2
                 
-                #add change every time
-                x[:, i] = x[:, i] + change * dt
+    #             #add change every time
+    #             x[:, i] = x[:, i] + change * dt
         
-        #add the new activations back to the return every time
-        ret = np.vstack((ret, x))
-    return ret[:, pad:-pad, pad:-pad]
+    #     #add the new activations back to the return every time
+    #     ret = np.vstack((ret, x))
+    # return ret[:, pad:-pad, pad:-pad]
 
 
 def rcf(I, A, B, fun_str, t_max, dt, F=0):
