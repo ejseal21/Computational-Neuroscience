@@ -23,7 +23,8 @@ class CQNet:
                 x = row
         self.x = np.array(x, dtype="float32")
         self.y = np.copy(self.x)
-        self.w = np.zeros(self.x.shape)
+        # self.y = np.ones(self.x.shape, dtype="float32")
+        self.w = np.copy(self.x)
         # self.x = self.x.astype(np.float32)
 
     def working_mem(self, decay, capacity, feedback_strength):
@@ -38,14 +39,19 @@ class CQNet:
 
     def rcf_wta(self, decay, capacity, go_signal, lower_bound):
         """This is a winner take all layer (yi)"""
+        # print("Self x: ", self.x)
+        # print("Self y: ", self.y)
+        other_y = np.copy(self.y)
+    
         for i in range(self.x.shape[0]):
-            self.y[i] += -decay * self.y[i] + (capacity - self.y[i]) * (self.y[i]**2 + go_signal * self.x[i]) - (lower_bound + self.y[i]) * competitive_nets.sum_not_I(np.square(self.y))[i]
+            other_y[i] += -decay * self.y[i] + (capacity - self.y[i]) * (self.y[i]**2 + go_signal * self.x[i]) - (lower_bound + self.y[i]) * competitive_nets.sum_not_I(np.square(self.y))[i]
             # self.y[i] += -decay*I[i] + (capacity-I[i])*((I[i]**2)+ go_signal*I[i])-(lower_bound + I[i])*np.sum(np.square(not_i_I))
-        
-        return np.array(self.y)
+        self.y = other_y
+        return np.array(other_y)
 
     def inhibitory(self, decay, capacity, threshold):
         """ This is the inhibitory wi layer."""
+        # print(self.w)
         for i in range(self.x.shape[0]):
             self.w[i] += -decay * self.w[i] + (capacity - self.w[i]) * np.where(self.y[i]-threshold > 0, self.y[i]-threshold, 0)
         return self.w
@@ -55,13 +61,15 @@ class CQNet:
         """This puts together all the layers"""
         
         
-        while np.sum(self.w) < 0.5:
+        # while np.sum(self.w) < 0.5:
+        for i in range(3):
             working_memory_output = self.working_mem(decay, capacity, feedback_strength)
             print("\nWorking Memory output:\n", working_memory_output)
             rcf_wta_output = self.rcf_wta(decay, capacity, go_signal, lower_bound)
             print("\nWinner Take all output:\n", rcf_wta_output)
             inhibitory_output = self.inhibitory(decay, capacity, threshold)
             print("\nInhibitory Output:\n", inhibitory_output)
+            print("\n------------------------------")
         pass
 
     def get_x(self):
@@ -70,5 +78,5 @@ class CQNet:
 
 #main method
 cq = CQNet()
-cq.competitive_queue(I = cq.get_x(), decay = 1.0, capacity = 1.0, feedback_strength = 1.0, go_signal = 1, lower_bound = 0, threshold = .2)
+cq.competitive_queue(I = cq.get_x(), decay = 1.3, capacity = 1.0, feedback_strength = 10.0, go_signal = 5, lower_bound = 0, threshold = .03)
 
