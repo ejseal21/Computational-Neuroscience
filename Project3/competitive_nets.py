@@ -106,7 +106,7 @@ def lateral_inhibition(I, A, B, t_max, dt):
     return ret
 
 
-def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
+def dist_dep_net(I, A=1, B=1, C=0, exc_sigma=0.1, inh_sigma=3.0, kerSz=3, t_max=3, dt=0.001):
     '''Distant-dependent (convolutional) 1D shunting network
 
     Parameters:
@@ -171,10 +171,12 @@ def dist_dep_net(I, A, B, C, exc_sigma, inh_sigma, kerSz, t_max, dt):
             #notebook equation to calculate change
             inhibitory = (-A * x[:, i])
             
-            #convolution?
-            for j in range(-pad, pad):
-                Esum = I[i+j, :] * exc[j+pad]
-                Ssum = I[i+j, :] * inh[j+pad]
+            #convolution
+            Esum = 0
+            Ssum = 0
+            for j in range(kerSz):
+                Esum += I[i+j-1, :] * exc[j]
+                Ssum += I[i+j-1, :] * inh[j]
 
             excitatory = (B - x[:, i]) * Esum#np.sum(ndimage.convolve(I[i-pad: i+pad], exc))
             inhibitory2 = (C + x[:, i]) * Ssum#np.sum(ndimage.convolve(I[i-pad: i+pad], inh)))
@@ -232,7 +234,7 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     for k in range(kerSz):
         inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
     inh = inh @ inh.T
-
+    print(inh)
 
     pad = int(np.ceil((kerSz - 1) / 2))
     I = np.pad(I, pad)
@@ -247,11 +249,11 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
             for j in range(pad, I.shape[1] - pad):
                 #notebook equation to calculate change
                 inhibitory = (-A * x[:, i])
-                
+                Ssum = 0
                 #convolution?
                 for k in range(-pad, pad):
                     for l in range(-pad, pad):
-                        Ssum = I[i+k, j+l] * inh[k+pad, l+pad]
+                        Ssum += I[i+k, j+l] * inh[k+pad, l+pad]
 
                 excitatory = I[i, j]
                 inhibitory2 = x[:, i] * Ssum
