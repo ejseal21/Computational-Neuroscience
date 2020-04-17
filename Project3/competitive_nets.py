@@ -159,10 +159,11 @@ def dist_dep_net(I, A=1, B=1, C=0, exc_sigma=0.1, inh_sigma=3.0, kerSz=3, t_max=
     for k in range(kerSz):
         inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
 
-
+    print("I.shape before padding", I.shape)
     pad = int(np.ceil((kerSz - 1) / 2))
+    print("pad", pad)
     I = np.expand_dims(np.pad(np.squeeze(I), pad), 1)
-
+    print("I.shape", I.shape)
     ret = np.empty((1, I.shape[0]))
     x = np.zeros((1, I.shape[0]))
     t = 0
@@ -177,8 +178,8 @@ def dist_dep_net(I, A=1, B=1, C=0, exc_sigma=0.1, inh_sigma=3.0, kerSz=3, t_max=
             Esum = 0
             Ssum = 0
             for j in range(kerSz):
-                Esum += I[i+j-1, :] * exc[j]
-                Ssum += I[i+j-1, :] * inh[j]
+                Esum += I[i+j-pad, :] * exc[j]
+                Ssum += I[i+j-pad, :] * inh[j]
 
             excitatory = (B - x[:, i]) * Esum#np.sum(ndimage.convolve(I[i-pad: i+pad], exc))
             inhibitory2 = (C + x[:, i]) * Ssum#np.sum(ndimage.convolve(I[i-pad: i+pad], inh)))
@@ -248,6 +249,7 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     
     while t < t_max:
         t += dt
+        print(t)
         # print(t)
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
