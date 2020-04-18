@@ -151,18 +151,21 @@ def dist_dep_net(I, A=1, B=1, C=0, exc_sigma=0.1, inh_sigma=3.0, kerSz=3, t_max=
     NOTE: You may either write your own convolution code (e.g. based on last semester) or use
     the built-in one in scipy.
     '''
+    #excitatory kernel
     exc = np.empty((kerSz, 1))
     for k in range(kerSz):
         exc[k, :] = np.power(np.e, (-1/exc_sigma**2) * (k - (kerSz // 2)) ** 2)
 
+    #inhibitory kernel
     inh = np.empty((kerSz, 1))
     for k in range(kerSz):
         inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
 
-
+    #padding for convolution
     pad = int(np.ceil((kerSz - 1) / 2))
     I = np.expand_dims(np.pad(np.squeeze(I), pad), 1)
-
+    
+    #initializing return value and time
     ret = np.empty((1, I.shape[0]))
     x = np.zeros((1, I.shape[0]))
     t = 0
@@ -170,19 +173,15 @@ def dist_dep_net(I, A=1, B=1, C=0, exc_sigma=0.1, inh_sigma=3.0, kerSz=3, t_max=
         t += dt
         #iterate over all Inputs
         for i in range(pad, I.shape[0] - pad):
-            #notebook equation to calculate change
-            inhibitory = (-A * x[:, i])
-            
             #convolution
             Esum = 0
             Ssum = 0
             for j in range(kerSz):
-                Esum += I[i+j-1, :] * exc[j]
-                Ssum += I[i+j-1, :] * inh[j]
-
-            excitatory = (B - x[:, i]) * Esum#np.sum(ndimage.convolve(I[i-pad: i+pad], exc))
-            inhibitory2 = (C + x[:, i]) * Ssum#np.sum(ndimage.convolve(I[i-pad: i+pad], inh)))
-            change = inhibitory + excitatory - inhibitory2
+                Esum += I[i+j-pad, :] * exc[j]
+                Ssum += I[i+j-pad, :] * inh[j]
+            
+            #equation from notebook for dxi/dt
+            change = (-A * x[:, i]) + (B - x[:, i]) * Esum - (C + x[:, i]) * Ssum
             
             #add change every time
             x[:, i] = x[:, i] + change * dt
@@ -236,58 +235,20 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     for k in range(kerSz):
         inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
     inh = inh @ inh.T
-    # print(inh)
 
     conv = signal.convolve2d(I, inh)
-    # print(conv.shape)
     t = 0
     x = np.zeros((1, I.shape[0], I.shape[1]))
-    # print(x.shape)
-    # ret = np.empty((1, I.shape[0], I.shape[1]))
     ret=[]
     
     while t < t_max:
         t += dt
-        # print(t)
         for i in range(I.shape[0]):
             for j in range(I.shape[1]):
                 change = -A * x[0, i, j] + I[i, j] - x[0, i, j] * conv[i, j]
                 x[0, i, j] = x[0, i, j] + change * dt
-                # ret[0, i, j] = x[0, i, j]
-        # ret = np.vstack((ret, x))
         ret.append(x)
-    return ret
-
-    # pad = int(np.ceil((kerSz - 1) / 2))
-    # I = np.pad(I, pad)
-
-    # ret = np.empty((1, I.shape[0], I.shape[1]))
-    # x = np.zeros((1, I.shape[0], I.shape[1]))
-    # t = 0
-    # while t < t_max:
-    #     t += dt
-    #     #iterate over all Inputs
-    #     for i in range(pad, I.shape[0] - pad):
-    #         for j in range(pad, I.shape[1] - pad):
-    #             #notebook equation to calculate change
-    #             inhibitory = (-A * x[:, i])
-    #             Ssum = 0
-    #             #convolution?
-    #             for k in range(-pad, pad+1):
-    #                 for l in range(-pad, pad+1):
-    #                     Ssum += I[i+k, j+l] * inh[k+pad, l+pad]
-
-    #             excitatory = I[i, j]
-    #             inhibitory2 = x[:, i] * Ssum
-    #             change = inhibitory + excitatory - inhibitory2
-                
-    #             #add change every time
-    #             x[:, i] = x[:, i] + change * dt
-        
-    #     #add the new activations back to the return every time
-    #     ret = np.vstack((ret, x))
-    # return ret[:, pad:-pad, pad:-pad]
-
+    return np.array(ret)
 
 def rcf(I, A, B, fun_str, t_max, dt, F=0):
     '''Recurrent competitive field network
