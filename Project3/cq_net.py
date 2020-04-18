@@ -16,47 +16,41 @@ class CQNet:
     lower_bound = C
 
     '''
-    def __init__(self, filepath="data/primacy_gradients.csv"):
+    def __init__(self, num_gradients=6, filepath="data/primacy_gradients.csv"):
         with open(filepath) as prim:
             rows = csv.reader(prim)
+            all_rows = []
             for row in rows:
                 x = row
-        self.x = np.array(x, dtype="float32")
-        self.y = np.copy(self.x)
+                all_rows.append(x)
+
+        float_x = np.array(all_rows[num_gradients], dtype="float32")
+
+        self.x = float_x/np.sum(float_x)
+        print(self.x)
+        self.y = np.zeros(self.x.shape, dtype="float32")
         self.w = np.zeros(self.x.shape, dtype="float32")
         # self.w = np.copy(self.x)
         # self.x = self.x.astype(np.float32)
 
     def working_mem(self, decay, capacity, feedback_strength):
         """This is  linear layer(xi)"""
-        for i in range(self.x.shape[0]):
-            left = - decay * self.x[i]
-            left2 = (capacity - self.x[i]) * self.x[i] 
-            right = self.x[i] * (competitive_nets.sum_not_I(self.x)[i] + feedback_strength * self.w[i])
-            self.x[i] += left + left2 - right
+        left = - decay * self.x
+        left2 = (capacity - self.x) * self.x 
+        right = self.x * (competitive_nets.sum_not_I(self.x) + feedback_strength * self.w)
+        self.x += left + left2 - right
         return np.array(self.x)
         
 
     def rcf_wta(self, decay, capacity, go_signal, lower_bound):
         """This is a winner take all layer (yi)"""
-        # print("Self x: ", self.x)
-        # print("Self y: ", self.y)
-        other_y = np.copy(self.y)
-    
-        for i in range(self.x.shape[0]):
-            other_y[i] += -decay * self.y[i] + (capacity - self.y[i]) * (self.y[i]**2 + go_signal * self.x[i]) - (lower_bound + self.y[i]) * competitive_nets.sum_not_I(np.square(self.y))[i]
-            # self.y[i] += -decay*I[i] + (capacity-I[i])*((I[i]**2)+ go_signal*I[i])-(lower_bound + I[i])*np.sum(np.square(not_i_I))
-        self.y = other_y
-        return np.array(other_y)
+        self.y += -decay * self.y + (capacity - self.y) * (self.y**2 + go_signal * self.x) - (lower_bound + self.y) * competitive_nets.sum_not_I(np.square(self.y))       
+        return np.array(self.y)
 
     def inhibitory(self, decay, capacity, threshold):
         """ This is the inhibitory wi layer."""
-        # print(self.w)
-        # self.w = np.zeros(self.w.shape, dtype = "float32")
-        for i in range(self.x.shape[0]):
-            print(np.where(self.y[i]-threshold > 0, self.y[i]-threshold, 0))
-            self.w[i] += -decay * self.w[i] + (capacity - self.w[i]) * np.where(self.y[i]-threshold > 0, self.y[i]-threshold, 0)
-            print(self.w[i])
+
+        self.w += -decay * self.w + (capacity - self.w) * np.where(self.y-threshold > 0, self.y-threshold, 0)
         return self.w
 
 
@@ -88,5 +82,5 @@ class CQNet:
 
 
 #main method
-cq = CQNet()
-cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 1000, go_signal =1.8, lower_bound = -.5, threshold = .65)
+cq = CQNet(num_gradients=3)
+cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 1000, go_signal =25, lower_bound = 0, threshold = .65)

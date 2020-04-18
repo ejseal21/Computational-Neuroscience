@@ -232,17 +232,17 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     '''
     inh = np.empty((kerSz, 1))
     for k in range(kerSz):
-        inh[k, 🙂 = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
+        inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
     inh = inh @ inh.T
     # print(inh.shape)
 
     N = I.shape[0]
     conv = np.zeros(I.shape)
 
-    print(I[0, :, 🙂.shape)
+    print(I[0, :, :].shape)
     for i in range(N):
-        # print(signal.convolve2d(I[i, :, 🙂, inh, 'same').shape)
-        conv[i, :, 🙂 = signal.convolve2d(I[i, :, 🙂, inh, 'same')
+        # print(signal.convolve2d(I[i, :, :], inh, 'same').shape)
+        conv[i, :, :] = signal.convolve2d(I[i, :, :], inh, 'same')
     
     ret = np.empty((1, I.shape[1], I.shape[2]))
     x = np.zeros((1, I.shape[1], I.shape[2]))
