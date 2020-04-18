@@ -5,7 +5,6 @@ Alice Cole Ethan
 Project 3: Competitive Networks
 '''
 import numpy as np
-import cv2
 from scipy import ndimage
 from scipy import signal
 
@@ -239,7 +238,7 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     conv = signal.convolve2d(I, inh)
     t = 0
     x = np.zeros((1, I.shape[0], I.shape[1]))
-    ret=[]
+    ret = []
     
     while t < t_max:
         t += dt
