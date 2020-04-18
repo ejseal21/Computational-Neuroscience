@@ -232,22 +232,27 @@ def dist_dep_net_image(I, A, inh_sigma, kerSz, t_max, dt):
     '''
     inh = np.empty((kerSz, 1))
     for k in range(kerSz):
-        inh[k, :] = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
+        inh[k, 🙂 = np.power(np.e, (-1/inh_sigma**2) * (k - (kerSz // 2)) ** 2)
     inh = inh @ inh.T
+    # print(inh.shape)
 
-    conv = signal.convolve2d(I, inh)
-    t = 0
-    x = np.zeros((1, I.shape[0], I.shape[1]))
-    ret = []
+    N = I.shape[0]
+    conv = np.zeros(I.shape)
+
+    print(I[0, :, 🙂.shape)
+    for i in range(N):
+        # print(signal.convolve2d(I[i, :, 🙂, inh, 'same').shape)
+        conv[i, :, 🙂 = signal.convolve2d(I[i, :, 🙂, inh, 'same')
     
+    ret = np.empty((1, I.shape[1], I.shape[2]))
+    x = np.zeros((1, I.shape[1], I.shape[2]))
+    t = 0 
     while t < t_max:
         t += dt
-        for i in range(I.shape[0]):
-            for j in range(I.shape[1]):
-                change = -A * x[0, i, j] + I[i, j] - x[0, i, j] * conv[i, j]
-                x[0, i, j] = x[0, i, j] + change * dt
-        ret.append(x)
-    return np.array(ret)
+        change = -A * x + I - x*conv
+        x = x + change * dt
+        ret = np.vstack((ret, x))
+    return ret
 
 def rcf(I, A, B, fun_str, t_max, dt, F=0):
     '''Recurrent competitive field network
