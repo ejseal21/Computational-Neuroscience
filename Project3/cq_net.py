@@ -67,9 +67,9 @@ class CQNet:
         """This puts together all the layers"""
         
         
-        # while np.sum(self.w) < 0.5:
-        # for i in range(3):
+
         while np.argmax(self.w)!=(self.w.shape[0]-1):
+            #zero out anything that meets the threshold value
             self.w[np.where(self.y-threshold > 0)[0]] = 0
             self.x[np.where(self.y-threshold > 0)[0]] = 0
             self.x[np.where(self.y-threshold > 0)[0]] = 0
@@ -92,7 +92,12 @@ class CQNet:
     def get_x(self):
         return self.x
 
+    def get_w(self):
+        return self.w
+    
+    def get_y(self):
+        return self.y
 
 #main method
 cq = CQNet(num_gradients=9)
-cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 1000, go_signal =1.7, lower_bound = 0, threshold = .7)
+cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .7)
