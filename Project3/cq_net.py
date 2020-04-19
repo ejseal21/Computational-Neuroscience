@@ -25,11 +25,13 @@ class CQNet:
                 all_rows.append(x)
 
         float_x = np.array(all_rows[num_gradients-1], dtype="float32")
+        # self.threshold = (num_gradients*5)/100
+        # print(self.threshold)
         self.x = float_x/np.sum(float_x)
         self.y = np.zeros(self.x.shape, dtype="float32")
         self.w = np.zeros(self.x.shape, dtype="float32")
 
-    def working_mem(self, decay, capacity, feedback_strength, threshold):
+    def working_mem(self, decay, capacity, feedback_strength):
         """This is  linear layer(xi)"""
 
         left = - decay * self.x
@@ -60,7 +62,7 @@ class CQNet:
             self.w[np.where(self.y-threshold > 0)[0]] = 0
             self.x[np.where(self.y-threshold > 0)[0]] = 0
             self.x[np.where(self.y-threshold > 0)[0]] = 0
-            working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength, threshold)
+            working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength)
             # print("\nWorking Memory output:\n", working_memory_output)
             rcf_wta_output = self.rcf_wta(decay_y, capacity_y, go_signal, lower_bound)
             # print("\nWinner Take all output:\n", rcf_wta_output)
@@ -83,5 +85,5 @@ class CQNet:
         return self.y
 
 #main method
-cq = CQNet(num_gradients=9)
-cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .7)
+cq = CQNet(num_gradients=13)
+cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .2)
