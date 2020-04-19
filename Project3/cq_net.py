@@ -24,17 +24,23 @@ class CQNet:
                 x = row
                 all_rows.append(x)
 
-        float_x = np.array(all_rows[num_gradients], dtype="float32")
-
+        float_x = np.array(all_rows[num_gradients-1], dtype="float32")
         self.x = float_x/np.sum(float_x)
-        print(self.x)
         self.y = np.zeros(self.x.shape, dtype="float32")
         self.w = np.zeros(self.x.shape, dtype="float32")
         # self.w = np.copy(self.x)
         # self.x = self.x.astype(np.float32)
 
-    def working_mem(self, decay, capacity, feedback_strength):
+    def working_mem(self, decay, capacity, feedback_strength, threshold):
         """This is  linear layer(xi)"""
+        # print("Pre norm")
+        # print(self.x)
+        # self.x = self.x/np.sum(self.x)
+        # print("Post norm")
+        # print(self.x)
+
+
+
         left = - decay * self.x
         left2 = (capacity - self.x) * self.x 
         right = self.x * (competitive_nets.sum_not_I(self.x) + feedback_strength * self.w)
@@ -50,7 +56,10 @@ class CQNet:
     def inhibitory(self, decay, capacity, threshold):
         """ This is the inhibitory wi layer."""
 
+        # self.w = np.zeros(self.x.shape, dtype="float32")
+
         self.w += -decay * self.w + (capacity - self.w) * np.where(self.y-threshold > 0, self.y-threshold, 0)
+
         return self.w
 
 
@@ -60,16 +69,19 @@ class CQNet:
         
         # while np.sum(self.w) < 0.5:
         # for i in range(3):
-        while 0.0 == self.w[-1]:
-            working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength)
+        while np.argmax(self.w)!=(self.w.shape[0]-1):
+            self.w[np.where(self.y-threshold > 0)[0]] = 0
+            self.x[np.where(self.y-threshold > 0)[0]] = 0
+            self.x[np.where(self.y-threshold > 0)[0]] = 0
+            working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength, threshold)
             # print("\nWorking Memory output:\n", working_memory_output)
             rcf_wta_output = self.rcf_wta(decay_y, capacity_y, go_signal, lower_bound)
-            print("\nWinner Take all output:\n", rcf_wta_output)
+            # print("\nWinner Take all output:\n", rcf_wta_output)
             inhibitory_output = self.inhibitory(decay_w, capacity_w, threshold)
             # print("\nInhibitory Output:\n", inhibitory_output)
             # print("\n------------------------------")
             
-            print(np.argwhere(self.w))
+            print(np.nonzero(self.w)[0])
         pass
         # 
         #     working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength)
@@ -82,5 +94,5 @@ class CQNet:
 
 
 #main method
-cq = CQNet(num_gradients=3)
-cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 1000, go_signal =25, lower_bound = 0, threshold = .65)
+cq = CQNet(num_gradients=9)
+cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 1000, go_signal =1.7, lower_bound = 0, threshold = .7)
