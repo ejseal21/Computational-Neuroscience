@@ -69,8 +69,8 @@ class CQNet:
             inhibitory_output = self.inhibitory(decay_w, capacity_w, threshold)
             # print("\nInhibitory Output:\n", inhibitory_output)
             # print("\n------------------------------")
-            
-            print(np.nonzero(self.w)[0])
+            if np.argwhere(self.w).size > 0:
+                print(np.nonzero(self.w)[0])
         pass
 
         
@@ -85,5 +85,10 @@ class CQNet:
         return self.y
 
 #main method
-cq = CQNet(num_gradients=13)
-cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .2)
+cq = CQNet(num_gradients=10)
+cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .55)
+
+
+#EXTENSION 1
+# cq = CQNet(num_gradients=14, filepath="data/primacy_gradients_ext.csv")
+# cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .3)
