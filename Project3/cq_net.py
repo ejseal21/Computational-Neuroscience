@@ -16,7 +16,7 @@ class CQNet:
     lower_bound = C
 
     '''
-    def __init__(self, num_gradients=6, filepath="data/primacy_gradients.csv", dt=0.01):
+    def __init__(self, num_gradients=6, filepath="data/primacy_gradients.csv", dt=0.01, timesteps=5000):
         with open(filepath) as prim:
             rows = csv.reader(prim)
             all_rows = []
@@ -32,9 +32,10 @@ class CQNet:
         self.w = np.zeros(self.x.shape, dtype="float32")
 
         self.dt = dt
+        self.timesteps= timesteps
 
 
-    def working_mem(self, decay, capacity, feedback_strength, threshold):
+    def working_mem(self, decay, capacity, feedback_strength):
         """This is  linear layer(xi)"""
 
         left = - decay * self.x
@@ -62,12 +63,12 @@ class CQNet:
         y_hist = np.empty((1, self.y.size))
         w_hist = np.empty((1, self.w.size))
 
-        while np.argmax(self.w)!=(self.w.shape[0]-1):
+        # while np.argmax(self.w)!=(self.w.shape[0]-1):
+        for i in range(self.timesteps):
             #zero out anything that meets the threshold value
             self.w[np.where(self.y-threshold > 0)[0]] = 0
             self.x[np.where(self.y-threshold > 0)[0]] = 0
-            self.x[np.where(self.y-threshold > 0)[0]] = 0
-            working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength, threshold)
+            working_memory_output = self.working_mem(decay_x, capacity_x, feedback_strength)
             x_hist = np.vstack((x_hist, np.copy(self.x)))
             # print("\nWorking Memory output:\n", working_memory_output)
             rcf_wta_output = self.rcf_wta(decay_y, capacity_y, go_signal, lower_bound)
@@ -94,7 +95,7 @@ class CQNet:
 
 #main method
 cq = CQNet(num_gradients=10)
-cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 0, go_signal =1.9, lower_bound = 0, threshold = .55)
+cq.competitive_queue(I = cq.get_x(), decay_x=0.5, decay_y=1, decay_w=.01, capacity_x=1.0, capacity_y=2.0, capacity_w=1.0, feedback_strength = 100, go_signal =1.9, lower_bound = 0, threshold = .55)
 
 
 #EXTENSION 1
