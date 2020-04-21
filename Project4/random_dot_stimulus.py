@@ -1,7 +1,7 @@
 '''random_dot_stimulus.py
 Creates noisy random dot kinematogram stimuli for motion decision making tasks
 CS443: Computational Neuroscience
-YOUR NAMES HERE
+Alice Cole Ethan
 Project 4: Motion detection and perception
 '''
 import numpy as np
@@ -41,4 +41,29 @@ def make_random_dot_stimulus(n_frames, height=50, width=100, dir_rc=(0, 1), n_do
     ndarray. shape=(n_frames, height, width).
         The RDK
     '''
-    pass
+    video = np.zeros((n_frames, height, width))
+    frame = np.zeros((height * width))
+    
+    #set n_dots random dots to 1
+    frame[np.random.choice(np.arange(height * width), size=n_dots)] = dot_value
+
+    frame = np.reshape(frame, (height, width))
+
+    for n in n_frames:
+        #up
+        if dir_rc[0] == -1:
+            frame = np.vstack((frame[1:, :], frame[0, :]))
+        #down
+        if dir_rc[0] == 1:
+            frame = np.vstack((frame[-1, :], frame[:2, :]))
+        #left
+        if dir_rc[1] == -1:
+            frame = np.hstack((frame[:, 1:], np.expand_dims(frame[:, 0], 1)))
+        #right
+        if dir_rc[1] == 1:
+            frame = np.hstack((np.expand_dims(frame[:, -1], 1), frame[:, :-1]))
+
+        video[n, :, :] = frame
+        mask = np.random.choice([True, False], (height, width), replace=False, p=(noise_prop, 1-noise_prop))
+        video[n, mask] = dot_value
+    return video
