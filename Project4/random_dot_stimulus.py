@@ -49,13 +49,13 @@ def make_random_dot_stimulus(n_frames, height=50, width=100, dir_rc=(0, 1), n_do
 
     frame = np.reshape(frame, (height, width))
 
-    for n in n_frames:
+    for n in range(n_frames):
         #up
         if dir_rc[0] == -1:
             frame = np.vstack((frame[1:, :], frame[0, :]))
         #down
         if dir_rc[0] == 1:
-            frame = np.vstack((frame[-1, :], frame[:2, :]))
+            frame = np.vstack((frame[-1, :], frame[:-1, :]))
         #left
         if dir_rc[1] == -1:
             frame = np.hstack((frame[:, 1:], np.expand_dims(frame[:, 0], 1)))
@@ -64,6 +64,6 @@ def make_random_dot_stimulus(n_frames, height=50, width=100, dir_rc=(0, 1), n_do
             frame = np.hstack((np.expand_dims(frame[:, -1], 1), frame[:, :-1]))
 
         video[n, :, :] = frame
-        mask = np.random.choice([True, False], (height, width), replace=False, p=(noise_prop, 1-noise_prop))
+        mask = np.random.choice([True, False], (height, width), replace=True, p=(noise_prop, 1-noise_prop))
         video[n, mask] = dot_value
     return video
