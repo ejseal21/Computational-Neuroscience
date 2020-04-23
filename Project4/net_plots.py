@@ -40,8 +40,8 @@ def plot_act_image_single(act, pause=0.001, cmap='bone'):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     for n in range(act.shape[0]):
-        plt.imshow(act[n])
-        display(fig)
+        plt.imshow(act[n], cmap=cmap)
+        # display(fig)
         clear_output(wait=True)
         plt.pause(pause)
 

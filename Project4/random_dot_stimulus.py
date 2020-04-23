@@ -62,8 +62,15 @@ def make_random_dot_stimulus(n_frames, height=50, width=100, dir_rc=(0, 1), n_do
         #right
         if dir_rc[1] == 1:
             frame = np.hstack((np.expand_dims(frame[:, -1], 1), frame[:, :-1]))
+        
+        add_noise = np.copy(frame)
+        add_noise[np.unravel_index(np.random.choice(np.arange(height * width), size=int(n_dots*noise_prop)), shape=(height, width))] = dot_value
+        video[n, :, :] = add_noise
+        # mask = np.random.choice([True, False], (height, width), replace=True, p=(noise_prop, 1-noise_prop))
+        # video[n, mask] = dot_value
+        
+        # print(video[0].size)
+        # print(np.count_nonzero(video[0]))
+        # break
 
-        video[n, :, :] = frame
-        mask = np.random.choice([True, False], (height, width), replace=True, p=(noise_prop, 1-noise_prop))
-        video[n, mask] = dot_value
     return video
