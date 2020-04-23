@@ -8,7 +8,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 
+
 import filters
+import math
 
 
 class KernelParams():
@@ -250,6 +252,7 @@ class MotionNet:
         self.comp_inhib_ker = None
         self.long_range_excit_ker = None
         self.mstd_inhib_ker = None
+        self.dt=dt
 
     def get_input(self, t):
         '''Get the appropriate external input signal frame at the current time step `t`.
@@ -277,6 +280,15 @@ class MotionNet:
             self.inputs (input video) is defined. shape=(n_frames, n_rows, n_cols).
         NOTE: Should throw a helpful error if self.inputs is None.
         '''
+        if self.inputs.any() == None:
+            print("ERROR: The constructor hasn't been called or there are no inputs")
+            return 
+        else:
+            dt_magnitude = 1/self.dt
+            return self.inputs[math.floor(t/dt_magnitude)]
+
+
+
         pass
 
     def make_inhib_dir_shift_map(self, n_dirs):
