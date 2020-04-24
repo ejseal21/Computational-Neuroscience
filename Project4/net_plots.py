@@ -1,7 +1,7 @@
 '''net_plots.py
 Plots for visualization neural network activity
 CS 443: Computational Neuroscience
-YOUR NAMES HERE
+Alice Cole Ethan
 Project 4: Motion estimation
 '''
 import numpy as np

@@ -1,7 +1,7 @@
 '''motion.py
 Network that detects motions and estimates the dominant direction
 CS 443: Computational Neuroscience
-YOUR NAMES HERE
+Alice Cole Ethan
 Project 4: Motion estimation
 '''
 import numpy as np
