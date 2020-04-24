@@ -391,7 +391,34 @@ class MotionNet:
         NOTE: Remember that habituative gates should have different initial conditions than all the
         rest.
         '''
-        pass
+        self.height = height
+        self.width = width
+        
+        #layer 1
+        self.x = np.zeros((n_steps, height, width))
+        self.z = np.ones((n_steps, height, width)) #habituative gates starts with 1s
+        self.y = np.zeros((n_steps, height, width))
+
+        #layer 2
+        self.dir_trans_inter_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.dir_trans_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.dir_trans_out = np.zeros((n_steps, n_dirs, height, width))
+
+        #layer 3
+        self.srf_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.srf_out = np.zeros((n_steps, n_dirs, height, width))
+
+        #layer 4
+        self.comp_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.comp_out = np.zeros((n_steps, n_dirs, height, width))
+
+        #layer 5
+        self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.lr_out = np.zeros((n_steps, n_dirs, height, width))
+
+        #layer 6
+        self.mstd_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.mstd_out = np.zeros((n_steps, n_dirs, height, width))
 
     def get_opponent_direction(self, dir):
         '''Given the direction index `dir`, return the index of the opponent direction
@@ -617,7 +644,10 @@ class MotionNet:
         - Start the temporal evolution of the network by updating the network activity at all
         time steps.
         '''
-        pass
+        self.inputs = inputs
+        self.initialize()
+
+
 
     def decode_direction(self, act, t, thres=0):
         '''Applies an activity (at time `t`) threshold to 2D spatial arrays of direction cells.
