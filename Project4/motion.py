@@ -405,25 +405,25 @@ class MotionNet:
         self.y = np.zeros((n_steps, height, width))
 
         #layer 2
-        self.dir_trans_inter_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.dir_trans_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.dir_trans_out = np.zeros((n_steps, n_dirs, height, width))
+        # self.dir_trans_inter_cells = np.zeros((n_steps, n_dirs, height, width))
+        # self.dir_trans_cells = np.zeros((n_steps, n_dirs, height, width))
+        # self.dir_trans_out = np.zeros((n_steps, n_dirs, height, width))
 
-        #layer 3
-        self.srf_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.srf_out = np.zeros((n_steps, n_dirs, height, width))
+        # #layer 3
+        # self.srf_cells = np.zeros((n_steps, n_dirs, height, width))
+        # self.srf_out = np.zeros((n_steps, n_dirs, height, width))
 
-        #layer 4
-        self.comp_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.comp_out = np.zeros((n_steps, n_dirs, height, width))
+        # #layer 4
+        # self.comp_cells = np.zeros((n_steps, n_dirs, height, width))
+        # self.comp_out = np.zeros((n_steps, n_dirs, height, width))
 
-        #layer 5
-        self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.lr_out = np.zeros((n_steps, n_dirs, height, width))
+        # #layer 5
+        # self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
+        # self.lr_out = np.zeros((n_steps, n_dirs, height, width))
 
-        #layer 6
-        self.mstd_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.mstd_out = np.zeros((n_steps, n_dirs, height, width))
+        # #layer 6
+        # self.mstd_cells = np.zeros((n_steps, n_dirs, height, width))
+        # self.mstd_out = np.zeros((n_steps, n_dirs, height, width))
 
     def get_opponent_direction(self, dir):
         '''Given the direction index `dir`, return the index of the opponent direction
@@ -458,8 +458,8 @@ class MotionNet:
         d_z: ndarray. shape=(height, width)
             Derivative of the habituative gates at time t
         '''
-        d_x = -self.layer1.get_decay() * self.x + (self.layer1.get_upper_bound - self.x) * self.inputs
-        d_z = 1 - z - self.hgate.get_depression_rate() * x * z
+        d_x = -self.layer1.get_decay() * self.x + (self.layer1.get_upper_bound() - self.x) * self.inputs
+        d_z = 1 - self.z - self.hgate.get_depression_rate() * self.x * self.z
 
         return d_x, d_z
         
@@ -637,9 +637,23 @@ class MotionNet:
             ...
         '''
         d_x, d_z = self.d_non_dir_transient_cells(t)
-        self.x += d_x
-        self.z += d_z
-        
+        self.x += d_x * self.dt
+        self.z += d_z * self.dt
+
+
+        # ret = np.empty(self.y.shape)
+        # for step in range(t):
+            
+        # #iterate over all Inputs
+        #     for i in range(self.y.shape[0]):
+        #         #notebook equation to calculate change
+        #         change = (-self.layer1.get_decay() * self.x[i]) + ((self.layer1.get_upper_bound() - self.x[i]) * self.y[i])
+        #         #add change every time
+        #         self.x[i] = self.x[i] + change * self.dt
+        #     #add the new neurons back to the return every time
+        #     ret = np.vstack((ret, self.x))
+        # return ret
+            
 
     def simulate(self, inputs):
         '''Starts a simulation and have the network process the video (e.g. RDK).
@@ -657,7 +671,11 @@ class MotionNet:
         time steps.
         '''
         self.inputs = inputs
-        self.initialize()
+        (n_frames, height, width) = inputs.shape
+
+        self.initialize(10, height, width)
+        n_steps = self.x.shape[0]
+        self.update_net(10)
 
 
 
