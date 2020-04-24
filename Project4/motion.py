@@ -252,7 +252,12 @@ class MotionNet:
         self.comp_inhib_ker = None
         self.long_range_excit_ker = None
         self.mstd_inhib_ker = None
-        self.dt=dt
+        self.dt = dt
+        
+
+        self.layer1 = LayerParams(lvl1_params)
+        self.hgate = HGateParams(lv1_hgate_params)
+
 
     def get_input(self, t):
         '''Get the appropriate external input signal frame at the current time step `t`.
@@ -453,7 +458,11 @@ class MotionNet:
         d_z: ndarray. shape=(height, width)
             Derivative of the habituative gates at time t
         '''
-        pass
+        d_x = -self.layer1.get_decay() * self.x + (self.layer1.get_upper_bound - self.x) * self.inputs
+        d_z = 1 - z - self.hgate.get_depression_rate() * x * z
+
+        return d_x, d_z
+        
 
     def d_dir_transient_cells(self, t):
         '''Compute the change in the Layer 2 cells: Directional Transient Cells
@@ -627,7 +636,10 @@ class MotionNet:
             - Use Layer 2 derivatives to compute Layer 2 cells at time t
             ...
         '''
-        pass
+        d_x, d_z = self.d_non_dir_transient_cells(t)
+        self.x += d_x
+        self.z += d_z
+        
 
     def simulate(self, inputs):
         '''Starts a simulation and have the network process the video (e.g. RDK).
