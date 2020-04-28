@@ -252,8 +252,11 @@ class MotionNet:
         self.comp_inhib_ker = None
         self.long_range_excit_ker = None
         self.mstd_inhib_ker = None
-        self.dt = dt
         
+        
+        self.dt = dt
+        self.n_dirs = n_dirs
+        self.dir_map = self.make_inhib_dir_shift_map(self.n_dirs)
 
         self.layer1 = LayerParams(lvl1_params)
         self.hgate = HGateParams(lv1_hgate_params)
@@ -293,9 +296,6 @@ class MotionNet:
             return self.inputs[math.floor(t/dt_magnitude)]
 
 
-
-        pass
-
     def make_inhib_dir_shift_map(self, n_dirs):
         '''Needed in motion detection / nulling inhibition (Layer 2: Directional transient cells).
         Maps each motion direction index (0, ..., 7) to a tuple indicating the row/col offsets
@@ -323,7 +323,16 @@ class MotionNet:
         and save the dictionary as an instance variable. You will need to use this dictionary more
         than once.
         '''
-        pass
+        dir_map = {}
+        dir_map[0] = (0, -1)
+        dir_map[1] = (1, -1)
+        dir_map[2] = (1, 0)
+        dir_map[3] = (1, 1)
+        dir_map[4] = (0, 1)
+        dir_map[5] = (-1, 1)
+        dir_map[6] = (-1, 0)
+        dir_map[7] = (-1, -1)
+        return dir_map
 
     def make_kernels(self):
         '''Makes all the excitatory/inhibitory convolutional kernels in Layers 3+. See constructor
@@ -396,9 +405,9 @@ class MotionNet:
         NOTE: Remember that habituative gates should have different initial conditions than all the
         rest.
         '''
-        self.height = height
-        self.width = width
-        
+        self.height = int(height)
+        self.width = int(width)
+        n_steps = int(n_steps)
         #layer 1
         self.x = np.zeros((n_steps, height, width))
         self.z = np.ones((n_steps, height, width)) #habituative gates starts with 1s
@@ -440,7 +449,10 @@ class MotionNet:
 
         NOTE: The only instance variable that you should need to compute this is `self.n_dirs`
         '''
-        pass
+        if dir >= self.n_dirs/2:
+            return dir-self.n_dirs/2
+        else:
+            return dir+self.n_dirs/2
 
     def d_non_dir_transient_cells(self, t):
         '''Compute the change in the Layer 1 cells: Non-directional Transient Cells.
@@ -458,9 +470,12 @@ class MotionNet:
         d_z: ndarray. shape=(height, width)
             Derivative of the habituative gates at time t
         '''
-        d_x = -self.layer1.get_decay() * self.x + (self.layer1.get_upper_bound() - self.x) * self.inputs
-        d_z = 1 - self.z - self.hgate.get_depression_rate() * self.x * self.z
-
+        # print(self.x.shape)
+        # print(self.get_input(t).shape)
+        d_x = -self.layer1.get_decay() * self.x[t] + (self.layer1.get_upper_bound() - self.x[t]) * self.get_input(t)
+        d_z = 1 - self.z[t] - self.hgate.get_depression_rate() * self.x[t] * self.z[t]
+        # print(d_x.shape)
+        # print(d_z.shape)
         return d_x, d_z
         
 
@@ -637,22 +652,8 @@ class MotionNet:
             ...
         '''
         d_x, d_z = self.d_non_dir_transient_cells(t)
-        self.x += d_x * self.dt
-        self.z += d_z * self.dt
-
-
-        # ret = np.empty(self.y.shape)
-        # for step in range(t):
-            
-        # #iterate over all Inputs
-        #     for i in range(self.y.shape[0]):
-        #         #notebook equation to calculate change
-        #         change = (-self.layer1.get_decay() * self.x[i]) + ((self.layer1.get_upper_bound() - self.x[i]) * self.y[i])
-        #         #add change every time
-        #         self.x[i] = self.x[i] + change * self.dt
-        #     #add the new neurons back to the return every time
-        #     ret = np.vstack((ret, self.x))
-        # return ret
+        self.x[t] += d_x * self.dt
+        self.z[t] += d_z * self.dt
             
 
     def simulate(self, inputs):
@@ -672,11 +673,10 @@ class MotionNet:
         '''
         self.inputs = inputs
         (n_frames, height, width) = inputs.shape
-
-        self.initialize(10, height, width)
-        n_steps = self.x.shape[0]
-        self.update_net(10)
-
+        n_steps = int(n_frames/self.dt)
+        self.initialize(n_steps, height, width)
+        for i in range (n_steps):
+            self.update_net(i)
 
 
     def decode_direction(self, act, t, thres=0):
@@ -699,4 +699,4 @@ class MotionNet:
         ndarray. shape=(n_dirs,)
             Thresholded neural activation at time `t` summed across space for all preferred directions.
         '''
-        pass
+        return np.sum(np.maximum(act[t] - thres, 0), axis=(1, 2))

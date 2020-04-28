@@ -114,4 +114,29 @@ def vector_sum_plot(act, figSz=(18, 9), pause=0.01):
         - NOTE: `np.meshgrid` is helpful for setting up the (x, y) coordinates for the vector that
         quiver plots.
     '''
-    pass
+    if len(act.shape) == 3:
+        act = np.expand_dims(act, axis=0)
+    
+    (n_frames, n_dirs, height, width) = act.shape
+    U = np.zeros((n_frames, height, width))
+    V = np.zeros((n_frames, height, width))
+    
+    #compute U and V
+    for i in range (n_frames):
+        for j in range (width):
+            for k in range (height):
+                for m in range (n_dirs):
+                    U[i, j, k] += act[i, m, j, k] * np.cos(2*np.pi*(m+1)/n_dirs)
+                    V[i, j, k] += act[i, m, j, k] * np.sin(2*np.pi*(m+1)/n_dirs)
+    U = U/np.max(U)
+    V = V/np.max(V)
+    X = np.arange(0, width)
+    Y = np.arange(0, height)
+    X, Y = np.meshgrid(X, Y)
+
+    fig = plt.figure(figsize=figSz)
+    ax = fig.add_subplot(1, 1, 1)
+    for n in range(n_frames):
+        plt.quiver(X, Y, U[n], V[n])
+        clear_output(wait=True)
+        plt.pause(pause)
