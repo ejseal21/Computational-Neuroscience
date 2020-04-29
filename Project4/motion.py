@@ -73,6 +73,7 @@ class LayerParams():
         inhib_g: float:
             Gain on the inhibitory input.
         '''
+        # print(tau)
         self.tau = tau
         self.A = A
         self.B = B
@@ -82,6 +83,7 @@ class LayerParams():
         self.inhib_g = inhib_g
 
     def get_time_const(self):
+        # print(self.tau)
         return self.tau
 
     def get_decay(self):
@@ -253,13 +255,23 @@ class MotionNet:
         self.long_range_excit_ker = None
         self.mstd_inhib_ker = None
         
+        # boolean: controls which layer is turned on or off
+        self.do_lvl1 = do_lvl1
+        self.do_lvl2 = do_lvl2
+        self.do_lvl3 = do_lvl3
+        self.do_lvl4 = do_lvl4
+        self.do_lvl5 = do_lvl5
+        self.do_lvl6 = do_lvl6
         
         self.dt = dt
         self.n_dirs = n_dirs
-        self.dir_map = self.make_inhib_dir_shift_map(self.n_dirs)
+        self.inhib_dir_shift_map = self.make_inhib_dir_shift_map(self.n_dirs)
 
+        # layer parameters
         self.layer1 = LayerParams(lvl1_params)
         self.hgate = HGateParams(lv1_hgate_params)
+        self.layer2 = LayerParams(lvl2_params)
+        self.layer2_inhib = LayerParams(lvl2_inter_params)
 
 
     def get_input(self, t):
@@ -414,9 +426,9 @@ class MotionNet:
         self.y = np.zeros((n_steps, height, width))
 
         #layer 2
-        # self.dir_trans_inter_cells = np.zeros((n_steps, n_dirs, height, width))
-        # self.dir_trans_cells = np.zeros((n_steps, n_dirs, height, width))
-        # self.dir_trans_out = np.zeros((n_steps, n_dirs, height, width))
+        self.dir_trans_inter_cells = np.zeros((n_steps, self.n_dirs, height, width))
+        self.dir_trans_cells = np.zeros((n_steps, self.n_dirs, height, width))
+        self.dir_trans_out = np.zeros((n_steps, self.n_dirs, height, width))
 
         # #layer 3
         # self.srf_cells = np.zeros((n_steps, n_dirs, height, width))
@@ -450,9 +462,9 @@ class MotionNet:
         NOTE: The only instance variable that you should need to compute this is `self.n_dirs`
         '''
         if dir >= self.n_dirs/2:
-            return dir-self.n_dirs/2
+            return int(dir-self.n_dirs/2)
         else:
-            return dir+self.n_dirs/2
+            return int(dir+self.n_dirs/2)
 
     def d_non_dir_transient_cells(self, t):
         '''Compute the change in the Layer 1 cells: Non-directional Transient Cells.
@@ -515,8 +527,25 @@ class MotionNet:
 
         Hint: make use of `self.inhib_dir_shift_map`
         '''
-        pass
+        d_dir_trans_inter_cells = np.zeros((self.n_dirs, self.height, self.width))
+        d_dir_trans_cells = np.zeros((self.n_dirs, self.height, self.width))
+        for d in range(self.n_dirs):
+            oppo = self.get_opponent_direction(d)
+            dir_shift = self.inhib_dir_shift_map[d]
+            for i in range(self.height):
+                for j in range(self.width):
+                    offset_i = i + dir_shift[0] 
+                    offset_j = j + dir_shift[1]
+                    # print(self.layer2_inhib.get_time_const())
+                    # print(self.layer2.get_time_const())
+                    # print(self.layer2.tau)
+                    # print(self.layer1.get_time_const())
+                    # print(self.layer1.get_decay())
+                    d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * [-self.dir_trans_inter_cells[t, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j]]
+                    d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * [-self.dir_trans_cells[t, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*self.dir_trans_cells[t, oppo, offset_i, offset_j]]
+        return d_dir_trans_inter_cells, d_dir_trans_cells
 
+    
     def d_short_range_filter(self, t):
         '''Compute the change in the Layer 3 cells: Short-range filter cells
 
@@ -651,10 +680,20 @@ class MotionNet:
             - Use Layer 2 derivatives to compute Layer 2 cells at time t
             ...
         '''
-        d_x, d_z = self.d_non_dir_transient_cells(t)
-        self.x[t] += d_x * self.dt
-        self.z[t] += d_z * self.dt
-            
+        # layer 1
+        if self.do_lvl1 == True:
+            d_x, d_z = self.d_non_dir_transient_cells(t)
+            self.x[t] += d_x * self.dt
+            self.z[t] += d_z * self.dt
+            self.y[t] = np.maximum(self.x[t] * self.z[t] - self.layer1.get_output_thres(), 0)
+        # layer 2 
+        if self.do_lvl2 == True:
+            d_c, d_e = self.d_dir_transient_cells(t)
+            self.dir_trans_inter_cells[t] = self.dir_trans_inter_cells[t] + d_c * self.dt
+            self.dir_trans_cells[t] = self.dir_trans_cells[t] + d_e * self.dt
+            self.dir_trans_out[t] = np.maximum(self.dir_trans_cells[t] - self.layer2.get_output_thres(), 0)
+
+        
 
     def simulate(self, inputs):
         '''Starts a simulation and have the network process the video (e.g. RDK).
