@@ -79,8 +79,24 @@ def plot_act_image_grid(act, n_rows=2, n_cols=4, pause=0.001, cmap='bone', figSz
             fig.tight_layout()
             plt.pause(pause)
     '''
-    pass
-
+    if len(act.shape)==3:
+        act = np.expand_dims(act, axis=0)
+    
+    (n_frames, n_dirs, height, width) = act.shape
+    if n_dirs != n_cols * n_rows:
+        print("Mismatch of n_dirs and n_rows/n_cols")
+        return
+    
+    fig = plt.figure(figsize=figSz)
+    for n in range(act.shape[0]):
+        fig.clf()
+        for d in range(n_dirs):
+            ax = fig.add_subplot(n_rows, n_cols, d+1)
+            ax.imshow(act[n][d], cmap=cmap)
+        # display(fig)
+        clear_output(wait=True)
+        fig.tight_layout()
+        plt.pause(pause)
 
 def vector_sum_plot(act, figSz=(18, 9), pause=0.01):
     '''Visualize the combined activity of all 8 direction cells as a single vector at every position
@@ -123,8 +139,8 @@ def vector_sum_plot(act, figSz=(18, 9), pause=0.01):
     
     #compute U and V
     for i in range (n_frames):
-        for j in range (width):
-            for k in range (height):
+        for j in range (height):
+            for k in range (width):
                 for m in range (n_dirs):
                     U[i, j, k] += act[i, m, j, k] * np.cos(2*np.pi*(m+1)/n_dirs)
                     V[i, j, k] += act[i, m, j, k] * np.sin(2*np.pi*(m+1)/n_dirs)

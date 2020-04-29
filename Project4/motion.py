@@ -73,7 +73,6 @@ class LayerParams():
         inhib_g: float:
             Gain on the inhibitory input.
         '''
-        # print(tau)
         self.tau = tau
         self.A = A
         self.B = B
@@ -268,10 +267,10 @@ class MotionNet:
         self.inhib_dir_shift_map = self.make_inhib_dir_shift_map(self.n_dirs)
 
         # layer parameters
-        self.layer1 = LayerParams(lvl1_params)
-        self.hgate = HGateParams(lv1_hgate_params)
-        self.layer2 = LayerParams(lvl2_params)
-        self.layer2_inhib = LayerParams(lvl2_inter_params)
+        self.layer1 = lvl1_params
+        self.hgate = lv1_hgate_params
+        self.layer2 = lvl2_params
+        self.layer2_inhib = lvl2_inter_params
 
 
     def get_input(self, t):
@@ -534,15 +533,11 @@ class MotionNet:
             dir_shift = self.inhib_dir_shift_map[d]
             for i in range(self.height):
                 for j in range(self.width):
-                    offset_i = i + dir_shift[0] 
-                    offset_j = j + dir_shift[1]
-                    # print(self.layer2_inhib.get_time_const())
-                    # print(self.layer2.get_time_const())
-                    # print(self.layer2.tau)
-                    # print(self.layer1.get_time_const())
-                    # print(self.layer1.get_decay())
-                    d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * [-self.dir_trans_inter_cells[t, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j]]
-                    d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * [-self.dir_trans_cells[t, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*self.dir_trans_cells[t, oppo, offset_i, offset_j]]
+                    offset_i = (i + dir_shift[0]) % self.height
+                    offset_j = (j + dir_shift[1]) % self.width
+                    # print(offset_i, offset_j)
+                    d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j])
+                    d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * (-self.dir_trans_cells[t, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*self.dir_trans_cells[t, oppo, offset_i, offset_j])
         return d_dir_trans_inter_cells, d_dir_trans_cells
 
     
