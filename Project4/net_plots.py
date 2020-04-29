@@ -92,8 +92,8 @@ def plot_act_image_grid(act, n_rows=2, n_cols=4, pause=0.001, cmap='bone', figSz
         fig.clf()
         for d in range(n_dirs):
             ax = fig.add_subplot(n_rows, n_cols, d+1)
-            ax.imshow(act[n][d], cmap=cmap)
-        # display(fig)
+            ax.imshow(act[n,d, :, :], cmap=cmap)
+        display(fig)
         clear_output(wait=True)
         fig.tight_layout()
         plt.pause(pause)

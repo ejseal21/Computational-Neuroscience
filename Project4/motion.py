@@ -526,18 +526,28 @@ class MotionNet:
 
         Hint: make use of `self.inhib_dir_shift_map`
         '''
+        #initialize
         d_dir_trans_inter_cells = np.zeros((self.n_dirs, self.height, self.width))
         d_dir_trans_cells = np.zeros((self.n_dirs, self.height, self.width))
+
+        #work on each direction
         for d in range(self.n_dirs):
+            #gets the opposite of each given direction
             oppo = self.get_opponent_direction(d)
+            #gets the given directional shift from a dict
             dir_shift = self.inhib_dir_shift_map[d]
+
             for i in range(self.height):
                 for j in range(self.width):
                     offset_i = (i + dir_shift[0]) % self.height
                     offset_j = (j + dir_shift[1]) % self.width
                     # print(offset_i, offset_j)
                     d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j])
+                    # d_dir_trans_inter_cells[d, j, i] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t, d, j, i] + self.layer2_inhib.get_excit_gain(
+                    # )*self.y[t, j, i] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j])
+
                     d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * (-self.dir_trans_cells[t, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*self.dir_trans_cells[t, oppo, offset_i, offset_j])
+
         return d_dir_trans_inter_cells, d_dir_trans_cells
 
     
@@ -684,8 +694,15 @@ class MotionNet:
         # layer 2 
         if self.do_lvl2 == True:
             d_c, d_e = self.d_dir_transient_cells(t)
-            self.dir_trans_inter_cells[t] = self.dir_trans_inter_cells[t] + d_c * self.dt
-            self.dir_trans_cells[t] = self.dir_trans_cells[t] + d_e * self.dt
+
+            # if (d_c*10).all() == d_e.all():
+            #     print(True)
+
+            # if self.dir_trans_cells[0].all() == self.dir_trans_inter_cells[34].all():
+            #     print(True)
+            
+            self.dir_trans_inter_cells[t] = (self.dir_trans_inter_cells[t] + d_c) * self.dt
+            self.dir_trans_cells[t] = (self.dir_trans_cells[t] + d_e) * self.dt
             self.dir_trans_out[t] = np.maximum(self.dir_trans_cells[t] - self.layer2.get_output_thres(), 0)
 
         
