@@ -1,7 +1,7 @@
 '''filters.py
 Creates Gaussian filters for convolution between network areas
 CS 443: Computational Neuroscience
-YOUR NAMES HERE
+Alice Cole Ethan
 Project 4: Motion estimation
 '''
 import numpy as np
@@ -30,8 +30,15 @@ def iso_gauss(sz=(5, 5), sigma=1, gain=1, offset=(0, 0)):
 
     HINT: np.meshgrid or outer product can be helpful.
     '''
-    pass
-
+    one_d = np.empty((sz[0], 1))
+    for i in range(offset[0], sz[0]+offset[0]):
+        one_d[i-offset[0], :] = np.power(np.e, (-1/sigma**2) * (i - (sz[0] // 2)) ** 2)
+    
+    one_d2 = np.empty((sz[0], 1))
+    for i in range(offset[1], sz[1] + offset[1]):
+        one_d2[i-offset[1], :] = np.power(np.e, (-1/sigma**2) * (i - (sz[1] // 2)) ** 2)
+    
+    return one_d2 @ one_d.T
 
 def aniso_gauss(k, sigmas=(3, 1), sz=(15, 15), n_dirs=8, gain=1):
     '''Creates an anisotropic 2D Gaussian kernel elongated in the direction k*2*pi/n_dirs.
