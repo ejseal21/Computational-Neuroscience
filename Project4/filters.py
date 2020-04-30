@@ -30,16 +30,18 @@ def iso_gauss(sz=(5, 5), sigma=1, gain=1, offset=(0, 0)):
 
     HINT: np.meshgrid or outer product can be helpful.
     '''
-    #controls height of kernel
+    #controls y position of kernel
     one_d = np.empty((sz[0], 1))
     for i in range(-offset[0], sz[0]-offset[0]):
         one_d[i + offset[0], :] = np.power(np.e, (-1/sigma**2) * (i - (sz[0] // 2)) ** 2)
-    
+ 
+    #controls x position of kernel
     one_d2 = np.empty((sz[0], 1))
     for i in range(-offset[1], sz[1]-offset[1]):
         one_d2[i+offset[1], :] = np.power(np.e, (-1/sigma**2) * (i - (sz[1] // 2)) ** 2)
-    
-    return one_d @ one_d2.T
+
+    ker = one_d @ one_d2.T
+    return (ker / np.sum(ker)) * gain
 
 def aniso_gauss(k, sigmas=(3, 1), sz=(15, 15), n_dirs=8, gain=1):
     '''Creates an anisotropic 2D Gaussian kernel elongated in the direction k*2*pi/n_dirs.
@@ -67,4 +69,19 @@ def aniso_gauss(k, sigmas=(3, 1), sz=(15, 15), n_dirs=8, gain=1):
 
     HINT: np.meshgrid can be helpful.
     '''
-    pass
+    gauss = np.empty(sz)
+    for m in range(sz[0]):
+        for n in range(sz[1]):
+            #the part before the exp
+            left = 1/(2 * np.pi * sigmas[0] * sigmas[1])
+            
+            #the first half of part in the exp
+            left_exp = -1/2 * (((m-sz[0]//2) * np.cos(2 * k * np.pi / n_dirs) - (n-sz[1] // 2) * np.sin(2 * k * np.pi / n_dirs)) / sigmas[0])**2
+            
+            #the second half of the part in the exp
+            right_exp = - 1/2 * (((m-sz[0]//2) * np.sin(2 * k * np.pi / n_dirs) + (n-sz[1] // 2) * np.cos(2 * k * np.pi / n_dirs)) / sigmas[1])**2
+            
+            #combining everything together, indices are flipped here because it needed to be transposed for whatever reason
+            gauss[n, m] = left * np.exp(left_exp + right_exp)
+    return gauss
+
