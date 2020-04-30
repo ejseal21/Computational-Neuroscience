@@ -365,7 +365,7 @@ class MotionNet:
             - Inhibitory kernel. Isotropic Gaussian.
             shape=(n_dirs, sz_rows, sz_cols).
         '''
-        pass
+        
 
     def make_mstd_fb_wts(self):
         '''Weights for directional inhibition in MSTd and feedback from MSTd to MT
@@ -483,8 +483,8 @@ class MotionNet:
         '''
         # print(self.x.shape)
         # print(self.get_input(t).shape)
-        d_x = -self.layer1.get_decay() * self.x[t] + (self.layer1.get_upper_bound() - self.x[t]) * self.get_input(t)
-        d_z = 1 - self.z[t] - self.hgate.get_depression_rate() * self.x[t] * self.z[t]
+        d_x = -self.layer1.get_decay() * self.x[t-1] + (self.layer1.get_upper_bound() - self.x[t-1]) * self.get_input(t)
+        d_z = 1 - self.z[t-1] - self.hgate.get_depression_rate() * self.x[t-1] * self.z[t-1]
         # print(d_x.shape)
         # print(d_z.shape)
         return d_x, d_z
@@ -539,14 +539,14 @@ class MotionNet:
 
             for i in range(self.height):
                 for j in range(self.width):
-                    offset_i = (i + dir_shift[0]) % self.height
-                    offset_j = (j + dir_shift[1]) % self.width
+                    offset_i = (i - dir_shift[0]) % self.height
+                    offset_j = (j - dir_shift[1]) % self.width
                     # print(offset_i, offset_j)
-                    d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j])
+                    d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t-1, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*np.maximum(self.dir_trans_inter_cells[t-1, oppo, offset_i, offset_j], 0))
                     # d_dir_trans_inter_cells[d, j, i] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t, d, j, i] + self.layer2_inhib.get_excit_gain(
                     # )*self.y[t, j, i] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j])
 
-                    d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * (-self.dir_trans_cells[t, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*self.dir_trans_cells[t, oppo, offset_i, offset_j])
+                    d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * (-self.dir_trans_cells[t-1, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*np.maximum(self.dir_trans_inter_cells[t-1, oppo, offset_i, offset_j], 0))
 
         return d_dir_trans_inter_cells, d_dir_trans_cells
 
@@ -688,9 +688,10 @@ class MotionNet:
         # layer 1
         if self.do_lvl1 == True:
             d_x, d_z = self.d_non_dir_transient_cells(t)
-            self.x[t] += d_x * self.dt
-            self.z[t] += d_z * self.dt
+            self.x[t] = self.x[t-1] + d_x * self.dt
+            self.z[t] = self.z[t-1] + d_z * self.dt
             self.y[t] = np.maximum(self.x[t] * self.z[t] - self.layer1.get_output_thres(), 0)
+
         # layer 2 
         if self.do_lvl2 == True:
             d_c, d_e = self.d_dir_transient_cells(t)
@@ -701,8 +702,8 @@ class MotionNet:
             # if self.dir_trans_cells[0].all() == self.dir_trans_inter_cells[34].all():
             #     print(True)
             
-            self.dir_trans_inter_cells[t] = (self.dir_trans_inter_cells[t] + d_c) * self.dt
-            self.dir_trans_cells[t] = (self.dir_trans_cells[t] + d_e) * self.dt
+            self.dir_trans_inter_cells[t] = self.dir_trans_inter_cells[t-1] + d_c * self.dt
+            self.dir_trans_cells[t] = self.dir_trans_cells[t-1] + d_e * self.dt
             self.dir_trans_out[t] = np.maximum(self.dir_trans_cells[t] - self.layer2.get_output_thres(), 0)
 
         

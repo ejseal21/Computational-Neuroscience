@@ -142,13 +142,13 @@ def vector_sum_plot(act, figSz=(18, 9), pause=0.01):
         for j in range (height):
             for k in range (width):
                 for m in range (n_dirs):
-                    U[i, j, k] += act[i, m, j, k] * np.cos(2*np.pi*(m+1)/n_dirs)
-                    V[i, j, k] += act[i, m, j, k] * np.sin(2*np.pi*(m+1)/n_dirs)
-    U = U/np.max(U)
-    V = V/np.max(V)
+                    U[i, j, k] += act[i, m, j, k] * np.cos(2*np.pi*(m)/n_dirs)
+                    V[i, j, k] += act[i, m, j, k] * np.sin(2*np.pi*(m)/n_dirs)
+    U = U/(np.max(U)+0.0000000000001)
+    V = V/(np.max(V)+0.0000000000001)
     X = np.arange(0, width)
     Y = np.arange(0, height)
-    X, Y = np.meshgrid(X, Y)
+    X, Y = np.meshgrid(X, Y, indexing='xy')
 
     fig = plt.figure(figsize=figSz)
     ax = fig.add_subplot(1, 1, 1)
