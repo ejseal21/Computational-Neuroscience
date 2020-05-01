@@ -365,6 +365,7 @@ class MotionNet:
             - Inhibitory kernel. Isotropic Gaussian.
             shape=(n_dirs, sz_rows, sz_cols).
         '''
+
         
 
     def make_mstd_fb_wts(self):
@@ -705,6 +706,9 @@ class MotionNet:
             self.dir_trans_inter_cells[t] = self.dir_trans_inter_cells[t-1] + d_c * self.dt
             self.dir_trans_cells[t] = self.dir_trans_cells[t-1] + d_e * self.dt
             self.dir_trans_out[t] = np.maximum(self.dir_trans_cells[t] - self.layer2.get_output_thres(), 0)
+
+        if self.do_lvl3 == True:
+            
 
         
 
