@@ -247,12 +247,17 @@ class MotionNet:
         # Layer 6
         self.mstd_out = None  # output of global grouping direction cells
 
+        self.dt = dt
+        self.n_dirs = n_dirs
+        self.inhib_dir_shift_map = self.make_inhib_dir_shift_map(self.n_dirs)
+
         # Excitatory/inhibitory kernel placeholders
         self.short_range_excit_ker = None
         self.comp_excit_ker = None
         self.comp_inhib_ker = None
         self.long_range_excit_ker = None
         self.mstd_inhib_ker = None
+
         
         # boolean: controls which layer is turned on or off
         self.do_lvl1 = do_lvl1
@@ -261,16 +266,17 @@ class MotionNet:
         self.do_lvl4 = do_lvl4
         self.do_lvl5 = do_lvl5
         self.do_lvl6 = do_lvl6
-        
-        self.dt = dt
-        self.n_dirs = n_dirs
-        self.inhib_dir_shift_map = self.make_inhib_dir_shift_map(self.n_dirs)
 
         # layer parameters
         self.layer1 = lvl1_params
         self.hgate = lv1_hgate_params
         self.layer2 = lvl2_params
         self.layer2_inhib = lvl2_inter_params
+        self.layer3 = lvl3_params
+        self.layer3_excite = lvl3_excit_ker_params
+
+        self.make_kernels()
+
 
 
     def get_input(self, t):
@@ -365,8 +371,22 @@ class MotionNet:
             - Inhibitory kernel. Isotropic Gaussian.
             shape=(n_dirs, sz_rows, sz_cols).
         '''
+        # layer 3 helloooooo
+        if self.do_lvl3:
+            self.short_range_excit_ker = np.zeros((self.n_dirs, self.layer3_excite.get_size()[0], self.layer3_excite.get_size()[1]))
+            for i in range(self.n_dirs):
+                self.short_range_excit_ker[i, :, :] = filters.aniso_gauss(i, sz=(13,13))
+        #layer 4
+        self.comp_excit_ker = None
+        #layer 4
+        self.comp_inhib_ker = None
+        #layer 5
+        self.long_range_excit_ker = None
+        #layer 6
+        self.mstd_inhib_ker = None
 
         
+        pass
 
     def make_mstd_fb_wts(self):
         '''Weights for directional inhibition in MSTd and feedback from MSTd to MT
@@ -431,8 +451,8 @@ class MotionNet:
         self.dir_trans_out = np.zeros((n_steps, self.n_dirs, height, width))
 
         # #layer 3
-        # self.srf_cells = np.zeros((n_steps, n_dirs, height, width))
-        # self.srf_out = np.zeros((n_steps, n_dirs, height, width))
+        self.srf_cells = np.zeros((n_steps, self.n_dirs, height, width))
+        self.srf_out = np.zeros((n_steps, self.n_dirs, height, width))
 
         # #layer 4
         # self.comp_cells = np.zeros((n_steps, n_dirs, height, width))
@@ -482,12 +502,10 @@ class MotionNet:
         d_z: ndarray. shape=(height, width)
             Derivative of the habituative gates at time t
         '''
-        # print(self.x.shape)
-        # print(self.get_input(t).shape)
+
         d_x = -self.layer1.get_decay() * self.x[t-1] + (self.layer1.get_upper_bound() - self.x[t-1]) * self.get_input(t)
         d_z = 1 - self.z[t-1] - self.hgate.get_depression_rate() * self.x[t-1] * self.z[t-1]
-        # print(d_x.shape)
-        # print(d_z.shape)
+
         return d_x, d_z
         
 
@@ -542,10 +560,7 @@ class MotionNet:
                 for j in range(self.width):
                     offset_i = (i - dir_shift[0]) % self.height
                     offset_j = (j - dir_shift[1]) % self.width
-                    # print(offset_i, offset_j)
                     d_dir_trans_inter_cells[d, i, j] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t-1, d, i, j] + self.layer2_inhib.get_excit_gain()*self.y[t, i, j] - self.layer2_inhib.get_excit_gain()*np.maximum(self.dir_trans_inter_cells[t-1, oppo, offset_i, offset_j], 0))
-                    # d_dir_trans_inter_cells[d, j, i] = self.layer2_inhib.get_time_const() * (-self.dir_trans_inter_cells[t, d, j, i] + self.layer2_inhib.get_excit_gain(
-                    # )*self.y[t, j, i] - self.layer2_inhib.get_excit_gain()*self.dir_trans_inter_cells[t, oppo, offset_i, offset_j])
 
                     d_dir_trans_cells[d, i, j] = self.layer2.get_time_const() * (-self.dir_trans_cells[t-1, d, i, j] + self.layer2.get_excit_gain()*self.y[t, i, j] - self.layer2.get_inhib_gain()*np.maximum(self.dir_trans_inter_cells[t-1, oppo, offset_i, offset_j], 0))
 
@@ -569,7 +584,12 @@ class MotionNet:
         - Aside from the usual stuff, make sure that you convolve the excitatory "netIn" kernels
         with the directional transient cell output signal.
         '''
-        pass
+        d_srf = np.zeros((self.n_dirs, self.height, self.width))
+        for k in range(self.n_dirs):
+            d_srf[k] = self.layer3.get_time_const() * (- np.expand_dims(self.srf_cells[t-1, k, :, :], 0) + signal.convolve(self.dir_trans_out[t, k], self.short_range_excit_ker[k], "same"))
+                        
+
+        return d_srf
 
     def d_competition_layer(self, t):
         '''Compute the change in the Layer 4 cells: Spatial and directional competition in MT
@@ -696,19 +716,16 @@ class MotionNet:
         # layer 2 
         if self.do_lvl2 == True:
             d_c, d_e = self.d_dir_transient_cells(t)
-
-            # if (d_c*10).all() == d_e.all():
-            #     print(True)
-
-            # if self.dir_trans_cells[0].all() == self.dir_trans_inter_cells[34].all():
-            #     print(True)
             
             self.dir_trans_inter_cells[t] = self.dir_trans_inter_cells[t-1] + d_c * self.dt
             self.dir_trans_cells[t] = self.dir_trans_cells[t-1] + d_e * self.dt
             self.dir_trans_out[t] = np.maximum(self.dir_trans_cells[t] - self.layer2.get_output_thres(), 0)
 
         if self.do_lvl3 == True:
-            
+            d_srf = self.d_short_range_filter(t)
+            self.srf_cells[t] = self.srf_cells[t-1] + d_srf * self.dt
+            self.srf_out[t] = np.maximum(self.srf_cells[t] - self.layer3.get_output_thres(), 0)
+            print("self.srf_out[t] in update_net()", self.srf_out[t])
 
         
 
