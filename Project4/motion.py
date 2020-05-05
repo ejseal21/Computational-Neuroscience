@@ -471,12 +471,12 @@ class MotionNet:
         self.comp_out = np.zeros((n_steps, self.n_dirs, height, width))
 
         #layer 5
-        self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
-        self.lr_out = np.zeros((n_steps, n_dirs, height, width))
+        self.lr_cells = np.zeros((n_steps, self.n_dirs, height, width))
+        self.lr_out = np.zeros((n_steps, self.n_dirs, height, width))
 
         # #layer 6
-        # self.mstd_cells = np.zeros((n_steps, n_dirs, height, width))
-        # self.mstd_out = np.zeros((n_steps, n_dirs, height, width))
+        # self.mstd_cells = np.zeros((n_steps, self.n_dirs, height, width))
+        # self.mstd_out = np.zeros((n_steps, self.n_dirs, height, width))
 
     def get_opponent_direction(self, dir):
         '''Given the direction index `dir`, return the index of the opponent direction
@@ -648,7 +648,13 @@ class MotionNet:
         - If Layer 6 (MSTd) not simulated, make the feedback signal 0.
         - Excitatory "netIn" kernel convolution with Layer 4 output
         '''
-        pass
+
+        d_lrf = np.zeros((self.n_dirs, self.height, self.width))
+        for k in range(self.n_dirs):
+            d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k, :, :], 0) + signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k, :, :] + self.layer5.get_lower_bound())*0) 
+
+        return d_lrf
+        
 
     def d_mstd_grouping(self, t):
         '''Compute the change in the Layer 6 cells: Direction grouping cells in MSTd
