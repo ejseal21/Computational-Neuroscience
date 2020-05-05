@@ -274,6 +274,10 @@ class MotionNet:
         self.layer2_inhib = lvl2_inter_params
         self.layer3 = lvl3_params
         self.layer3_excite = lvl3_excit_ker_params
+        self.layer4 = lvl4_params
+        self.layer4_excite = lvl4_excit_ker_params
+        self.layer4_inhib = lvl4_inhib_ker_params
+        
 
         self.make_kernels()
 
@@ -377,16 +381,19 @@ class MotionNet:
             for i in range(self.n_dirs):
                 self.short_range_excit_ker[i, :, :] = filters.aniso_gauss(i, sz=(13,13))
         #layer 4
-        self.comp_excit_ker = None
-        #layer 4
-        self.comp_inhib_ker = None
+        if self.do_lvl4:
+            self.comp_excit_ker = np.zeros((self.n_dirs, self.layer4_excite.get_size()[0], self.layer4_excite.get_size()[1]))
+            for i in range(self.n_dirs):
+                self.comp_excit_ker[i, :, :] = filters.aniso_gauss(i, sz=(13,13))
+            self.comp_inhib_ker = np.zeros((self.n_dirs, self.layer4_inhib.get_size()[0], self.layer4_inhib.get_size()[1]))
+            for i in range(self.n_dirs):
+                self.comp_inhib_ker[i, :, :] = filters.iso_gauss(i, sigma=5, sz=(23,23))
         #layer 5
         self.long_range_excit_ker = None
         #layer 6
         self.mstd_inhib_ker = None
 
         
-        pass
 
     def make_mstd_fb_wts(self):
         '''Weights for directional inhibition in MSTd and feedback from MSTd to MT
@@ -455,8 +462,8 @@ class MotionNet:
         self.srf_out = np.zeros((n_steps, self.n_dirs, height, width))
 
         # #layer 4
-        # self.comp_cells = np.zeros((n_steps, n_dirs, height, width))
-        # self.comp_out = np.zeros((n_steps, n_dirs, height, width))
+        self.comp_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.comp_out = np.zeros((n_steps, n_dirs, height, width))
 
         # #layer 5
         # self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
@@ -611,8 +618,12 @@ class MotionNet:
             3. Inhibitory "netIn" with Layer 3 output from the opponent direction (DIRECTIONAL competition)
              (no convolution)
         '''
-        pass
+        d_comp = np.zeros((self.n_dirs, self.height, self,width))
+        for k in range(self.n_dirs):
+            d_comp[k] = self.layer4.get_time_const() * (- np.expand_dims(self.comp_cells[t-1, k, :, :], 0) + (1-self.comp_cells[t-1, k, :, :]) * signal.convolve(self.srf_out[t, k], self.comp_excit_ker[k], "same"))
 
+        return d_comp
+        
     def d_long_range(self, t):
         '''Compute the change in the Layer 5 cells: Long range filter cells in MT
 
@@ -726,6 +737,12 @@ class MotionNet:
             self.srf_cells[t] = self.srf_cells[t-1] + d_srf * self.dt
             self.srf_out[t] = np.maximum(self.srf_cells[t] - self.layer3.get_output_thres(), 0)
             print("self.srf_out[t] in update_net()", self.srf_out[t])
+
+        if self.do_lvl4:
+            d_comp = self.d_competition_layer(t)
+            self.comp_cells[t] = self.comp_cells[t-1] + d_comp * self.dt
+            self.comp_out[t] = np.maximum(self.comp_cells[t] - self.layer4.get_output_thres(), 0)
+            
 
         
 
