@@ -277,6 +277,8 @@ class MotionNet:
         self.layer4 = lvl4_params
         self.layer4_excite = lvl4_excit_ker_params
         self.layer4_inhib = lvl4_inhib_ker_params
+        self.layer5 = lvl5_params
+        self.layer5_excite = lvl5_excit_ker_params
         
 
         self.make_kernels()
@@ -389,7 +391,10 @@ class MotionNet:
             for i in range(self.n_dirs):
                 self.comp_inhib_ker[i, :, :] = filters.iso_gauss(sigma=self.layer4_inhib.get_sigma(), sz=self.layer4_inhib.get_size())
         #layer 5
-        self.long_range_excit_ker = None
+        if self.do_lvl5:
+            self.long_range_excit_ker = np.zeros((self.n_dirs, self.layer5_excite.get_size()[0], self.layer5_excite.get_size()[1]))
+            for i in range(self.n_dirs):
+                self.long_range_excit_ker[i, :, :] = filters.aniso_gauss(i, sigmas=self.layer5_excite.get_sigma(), sz=self.layer5_excite.get_size())
         #layer 6
         self.mstd_inhib_ker = None
 
@@ -465,9 +470,9 @@ class MotionNet:
         self.comp_cells = np.zeros((n_steps, self.n_dirs, height, width))
         self.comp_out = np.zeros((n_steps, self.n_dirs, height, width))
 
-        # #layer 5
-        # self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
-        # self.lr_out = np.zeros((n_steps, n_dirs, height, width))
+        #layer 5
+        self.lr_cells = np.zeros((n_steps, n_dirs, height, width))
+        self.lr_out = np.zeros((n_steps, n_dirs, height, width))
 
         # #layer 6
         # self.mstd_cells = np.zeros((n_steps, n_dirs, height, width))
@@ -745,7 +750,12 @@ class MotionNet:
             d_comp = self.d_competition_layer(t)
             self.comp_cells[t] = self.comp_cells[t-1] + d_comp * self.dt
             self.comp_out[t] = np.maximum(self.comp_cells[t] - self.layer4.get_output_thres(), 0)
-            
+
+        if self.do_lvl5:
+            d_lr = self.d_long_range(t)
+            self.lr_cells[t] = self.lr_cells[t-1] + d_lr * self.dt
+            self.lr_out[t] = np.maximum(self.lr_cells[t] - self.layer5.get_output_thres(), 0)
+
 
         
 
