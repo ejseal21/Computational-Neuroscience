@@ -706,16 +706,8 @@ class MotionNet:
         non-preferred directions.
         HINT: broadcasting/new axes may be helpful here.
         '''
-        # mstd_fb1 = np.empty((self.n_dirs, self.height, self.width))
-        # mstd_fb2 = np.empty((self.n_dirs, self.height, self.width))
-        print(self.mstd_inhib_ker.shape)
-        print(curr_mstd_out.shape)
-        print(self.mstd_wt_matrix.shape)
-        mstd_fb1 = signal.convolve(np.expand_dims( self.mstd_inhib_ker, 0), curr_mstd_out)
-        mstd_fb2 = signal.convolve(np.expand_dims(self.mstd_wt_matrix, 0), mstd_fb1)
-
-        # d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k, :, :], 0) + signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k, :, :] + self.layer5.get_lower_bound())*0) 
-        return mstd_fb1, mstd_fb2
+        mstd_fb1 = signal.convolve(curr_mstd_out, np.expand_dims( self.mstd_inhib_ker, 0), "same")
+        return signal.convolve(mstd_fb1, np.expand_dims(self.mstd_wt_matrix, 0), "same")
 
     def update_net(self, t):
         '''Solve for all the cell populations activity at the current time based on the previous
