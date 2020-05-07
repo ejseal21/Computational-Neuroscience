@@ -671,7 +671,7 @@ class MotionNet:
             if self.do_lvl6 == False:
                 fb = 0
             else:
-                fb = self.mstd_fb(t-1,self.mstd_out[t-1])[k]
+                fb = self.mstd_fb(t,self.mstd_out[t-1])[k]
             d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k, :, :], 0) + (1 - self.lr_cells[t-1, k, :, :]) * signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k, :, :] + self.layer5.get_lower_bound()) * fb) 
         return d_lrf
         
@@ -697,7 +697,7 @@ class MotionNet:
         print('start grouping')
         d_comp = np.empty((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
-            d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t-1, self.mstd_out[t-1])[k])
+            d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1])[k])
         print('finish grouping')
         return d_comp
 
@@ -722,39 +722,15 @@ class MotionNet:
         non-preferred directions.
         HINT: broadcasting/new axes may be helpful here.
         '''
-        # print("Current MSTD Out")
-        # print(curr_mstd_out.shape)
-        # print(self.mstd_inhib_ker.shape)
-        # print(curr_mstd_out.shape)
-        # print(self.mstd_inhib_ker.shape)
-        # print(np.expand_dims(self.mstd_inhib_ker, 0).shape)
-                    
-        # mstd_fb1 = signal.convolve(curr_mstd_out, np.expand_dims(self.mstd_inhib_ker, 0), "same")
-
         mstd_fb1 = np.zeros((curr_mstd_out.shape))
         for i in range(self.n_dirs):
             mstd_fb1[i] = signal.convolve2d(curr_mstd_out[i], self.mstd_inhib_ker, "same")
 
-
         mstd_fb = np.empty(mstd_fb1.shape)
 
-        # print(mstd_fb1.shape)
-
         for k in range(self.n_dirs):
-            for i in range(curr_mstd_out.shape[1]):
-                for j in range(curr_mstd_out.shape[2]):
-                    mstd_fb[k, i, j] = np.sum(self.mstd_wt_matrix[k] * mstd_fb1[:, i, j], axis=0)
+            mstd_fb[k] = np.sum(np.expand_dims(np.expand_dims(self.mstd_wt_matrix[k], 1), 2) * mstd_fb1, axis=0)
 
-
-
-        # print(mstd_fb1.shape) #- 8, 4, 4
-        # print(self.mstd_wt_matrix.shape) #8, 8
-
-
-
-        # ret = self.mstd_wt_matrix * mstd_fb1
-
-        # mstd_fb = signal.convolve(mstd_fb1, np.expand_dims(self.mstd_wt_matrix, 0), "same")
         return mstd_fb
 
     def update_net(self, t):
@@ -827,8 +803,6 @@ class MotionNet:
             d_mstd = self.d_mstd_grouping(t)
             self.mstd_cells[t] = self.mstd_cells[t-1] + d_mstd * self.dt
             self.mstd_out[t] = np.maximum(self.mstd_cells[t] - self.layer6.get_output_thres(), 0)
-
-
 
         
 
