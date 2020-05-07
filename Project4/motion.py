@@ -718,7 +718,17 @@ class MotionNet:
         # print("Current MSTD Out")
         # print(curr_mstd_out.shape)
         # print(self.mstd_inhib_ker.shape)
-        mstd_fb1 = signal.convolve(np.expand_dims(curr_mstd_out, 0), self.mstd_inhib_ker, "same")
+
+        mstd_fb1 = signal.convolve(curr_mstd_out, np.expand_dims(self.mstd_inhib_ker, 0), "same")
+        mstd_fb = np.empty(mstd_fb1.shape)
+
+        for k in range(self.n_dirs):
+            for i in range(curr_mstd_out.shape[1]):
+                for j in range(curr_mstd_out.shape[2]):
+                    mstd_fb[k, i, j] = np.sum(self.mstd_wt_matrix[k] * mstd_fb1[k, i, j])
+
+
+
         # print(mstd_fb1.shape) #- 8, 4, 4
         # print(self.mstd_wt_matrix.shape) #8, 8
 
@@ -727,7 +737,8 @@ class MotionNet:
         #     mstd_fb1[i] = signal.convolve2d(curr_mstd_out[i], self.mstd_inhib_ker, "same")
 
         # ret = self.mstd_wt_matrix * mstd_fb1
-        mstd_fb = signal.convolve(mstd_fb1, np.expand_dims(self.mstd_wt_matrix, 0), "same")
+
+        # mstd_fb = signal.convolve(mstd_fb1, np.expand_dims(self.mstd_wt_matrix, 0), "same")
         return mstd_fb
 
     def update_net(self, t):
