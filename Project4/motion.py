@@ -691,7 +691,7 @@ class MotionNet:
         '''
         d_comp = np.empty((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
-            d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t-1, self.mstd_out[t-1,k])[k])
+            d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t-1, self.mstd_out[t-1,k]))
         return d_comp
 
 
