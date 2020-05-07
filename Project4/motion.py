@@ -715,9 +715,9 @@ class MotionNet:
         non-preferred directions.
         HINT: broadcasting/new axes may be helpful here.
         '''
-        print("Current MSTD Out")
-        print(curr_mstd_out.shape)
-        print(self.mstd_inhib_ker.shape)
+        # print("Current MSTD Out")
+        # print(curr_mstd_out.shape)
+        # print(self.mstd_inhib_ker.shape)
         mstd_fb1 = signal.convolve(np.expand_dims(curr_mstd_out, 0), self.mstd_inhib_ker, "same")
         # print(mstd_fb1.shape) #- 8, 4, 4
         # print(self.mstd_wt_matrix.shape) #8, 8
