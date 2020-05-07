@@ -279,6 +279,9 @@ class MotionNet:
         self.layer4_inhib = lvl4_inhib_ker_params
         self.layer5 = lvl5_params
         self.layer5_excite = lvl5_excit_ker_params
+        self.layer6 = lvl6_params
+        self.layer6_inhib = lvl6_inhib_ker_params
+
         
 
         self.make_kernels()
@@ -378,7 +381,7 @@ class MotionNet:
             - Inhibitory kernel. Isotropic Gaussian.
             shape=(n_dirs, sz_rows, sz_cols).
         '''
-        # layer 3 helloooooo
+        # layer 3
         if self.do_lvl3:
             self.short_range_excit_ker = np.zeros((self.n_dirs, self.layer3_excite.get_size()[0], self.layer3_excite.get_size()[1]))
             for i in range(self.n_dirs):
@@ -397,7 +400,10 @@ class MotionNet:
             for i in range(self.n_dirs):
                 self.long_range_excit_ker[i, :, :] = filters.aniso_gauss(i, sigmas=self.layer5_excite.get_sigma(), sz=self.layer5_excite.get_size())
         #layer 6
-        self.mstd_inhib_ker = None
+        if self.do_lvl6:
+            self.mstd_inhib_ker = np.zeros((self.n_dirs, self.layer6_inhib.get_size()[0], self.layer6_inhib.get_size()[1]))
+            for i in range(self.n_dirs):
+                self.mstd_inhib_ker[i,:,:] = filters.iso_gauss(sigma=self.layer6_inhib.get_sigma(), sz = self.layer6_inhib.get_size())
 
         
 
@@ -484,9 +490,9 @@ class MotionNet:
         self.lr_cells = np.zeros((n_steps, self.n_dirs, height, width))
         self.lr_out = np.zeros((n_steps, self.n_dirs, height, width))
 
-        # #layer 6
-        # self.mstd_cells = np.zeros((n_steps, self.n_dirs, height, width))
-        # self.mstd_out = np.zeros((n_steps, self.n_dirs, height, width))
+        #layer 6
+        self.mstd_cells = np.zeros((n_steps, self.n_dirs, height, width))
+        self.mstd_out = np.zeros((n_steps, self.n_dirs, height, width))
 
     def get_opponent_direction(self, dir):
         '''Given the direction index `dir`, return the index of the opponent direction
@@ -661,8 +667,7 @@ class MotionNet:
 
         d_lrf = np.zeros((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
-            d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k, :, :], 0) + signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k, :, :] + self.layer5.get_lower_bound())*0) 
-
+            d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k, :, :], 0) + (1 - self.lr_cells[t-1, k, :, :]) * signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k, :, :] + self.layer5.get_lower_bound()) * self.mstd_fb(t-1,self.mstd_out[t-1][k])) #i think 1 should be k
         return d_lrf
         
 
@@ -684,7 +689,11 @@ class MotionNet:
         - Use self.mstd_fb() to compute the inhibitory feedback signal. It should be based on the
         MSTd output signal at t-1.
         '''
-        pass
+        d_comp = np.empty((self.n_dirs, self.height, self.width))
+        for k in range(self.n_dirs):
+            d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t-1, self.mstd_out[t-1,k])[k])
+        return d_comp
+
 
     def mstd_fb(self, t, curr_mstd_out):
         '''Computes feedback signal from MSTd.
@@ -706,8 +715,20 @@ class MotionNet:
         non-preferred directions.
         HINT: broadcasting/new axes may be helpful here.
         '''
-        mstd_fb1 = signal.convolve(curr_mstd_out, np.expand_dims( self.mstd_inhib_ker, 0), "same")
-        return signal.convolve(mstd_fb1, np.expand_dims(self.mstd_wt_matrix, 0), "same")
+        print("Current MSTD Out")
+        print(curr_mstd_out.shape)
+        print(self.mstd_inhib_ker.shape)
+        mstd_fb1 = signal.convolve(np.expand_dims(curr_mstd_out, 0), self.mstd_inhib_ker, "same")
+        # print(mstd_fb1.shape) #- 8, 4, 4
+        # print(self.mstd_wt_matrix.shape) #8, 8
+
+        # mstd_fb1 = np.zeros((curr_mstd_out.shape))
+        # for i in range(self.n_dirs):
+        #     mstd_fb1[i] = signal.convolve2d(curr_mstd_out[i], self.mstd_inhib_ker, "same")
+
+        # ret = self.mstd_wt_matrix * mstd_fb1
+        mstd_fb = signal.convolve(mstd_fb1, np.expand_dims(self.mstd_wt_matrix, 0), "same")
+        return mstd_fb
 
     def update_net(self, t):
         '''Solve for all the cell populations activity at the current time based on the previous
@@ -768,10 +789,18 @@ class MotionNet:
             self.comp_cells[t] = self.comp_cells[t-1] + d_comp * self.dt
             self.comp_out[t] = np.maximum(self.comp_cells[t] - self.layer4.get_output_thres(), 0)
 
+        # layer 5
         if self.do_lvl5:
             d_lr = self.d_long_range(t)
             self.lr_cells[t] = self.lr_cells[t-1] + d_lr * self.dt
             self.lr_out[t] = np.maximum(self.lr_cells[t] - self.layer5.get_output_thres(), 0)
+        
+        # layer 6
+        if self.do_lvl6:
+            d_mstd = self.d_mstd_grouping(t)
+            self.mstd_cells[t] = self.mstd_cells[t-1] + d_mstd * self.dt
+            self.mstd_out[t] = np.maximum(self.mstd_cells[t] - self.layer6.get_output_thres(), 0)
+
 
 
         
