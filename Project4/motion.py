@@ -694,11 +694,11 @@ class MotionNet:
         - Use self.mstd_fb() to compute the inhibitory feedback signal. It should be based on the
         MSTd output signal at t-1.
         '''
-        print('start grouping')
+        # print('start grouping')
         d_comp = np.empty((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
             d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1])[k])
-        print('finish grouping')
+        # print('finish grouping')
         return d_comp
 
 
@@ -729,7 +729,7 @@ class MotionNet:
         mstd_fb = np.empty(mstd_fb1.shape)
 
         for k in range(self.n_dirs):
-            mstd_fb[k] = np.sum(np.expand_dims(np.expand_dims(self.mstd_wt_matrix[k], 1), 2) * mstd_fb1, axis=0)
+            mstd_fb[k] = np.sum(np.expand_dims(np.expand_dims(np.copy(self.mstd_wt_matrix[k]), 1), 2) * mstd_fb1, axis=0)
 
         return mstd_fb
 
