@@ -615,6 +615,7 @@ class MotionNet:
         d_srf = np.zeros((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
             d_srf[k] = self.layer3.get_time_const() * (- np.expand_dims(self.srf_cells[t-1, k, :, :], 0) + signal.convolve(self.dir_trans_out[t, k], self.short_range_excit_ker[k], "same"))
+        # d_srf = self.layer3.get_time_const() * (- np.expand_dims(self.srf_cells[t-1], 0) + signal.convolve(self.dir_trans_out[t], self.short_range_excit_ker, "same"))
                         
 
         return d_srf
@@ -724,16 +725,12 @@ class MotionNet:
         non-preferred directions.
         HINT: broadcasting/new axes may be helpful here.
         '''
-        mstd_fb1 = np.zeros((curr_mstd_out.shape))
-        for i in range(self.n_dirs):
-            mstd_fb1[i] = signal.convolve2d(curr_mstd_out[i], self.mstd_inhib_ker, "same")
-
-        mstd_fb = np.empty(mstd_fb1.shape)
-
-        for k in range(self.n_dirs):
-            mstd_fb[k] = np.sum(np.expand_dims(np.expand_dims(np.copy(self.mstd_wt_matrix[k]), 1), 2) * mstd_fb1, axis=0)
-
-        return mstd_fb
+        mstd_fb1 = signal.convolve(curr_mstd_out, np.expand_dims(self.mstd_inhib_ker, 0), "same")
+        mstd_fb = np.sum(np.expand_dims(np.expand_dims(self.mstd_wt_matrix, 1), 2).T * np.expand_dims(mstd_fb1, 3), axis=0).T
+        ret = np.empty((mstd_fb.shape[0], mstd_fb.shape[2], mstd_fb.shape[1]))
+        for i in range(mstd_fb.shape[0]):
+            ret[i] = mstd_fb[i].T
+        return ret
 
     def update_net(self, t):
         '''Solve for all the cell populations activity at the current time based on the previous
