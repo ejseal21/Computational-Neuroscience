@@ -694,11 +694,13 @@ class MotionNet:
         - Use self.mstd_fb() to compute the inhibitory feedback signal. It should be based on the
         MSTd output signal at t-1.
         '''
-        # print('start grouping')
         d_comp = np.empty((self.n_dirs, self.height, self.width))
-        for k in range(self.n_dirs):
-            d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1])[k])
-        # print('finish grouping')
+        
+        # for k in range(self.n_dirs):            
+        #     d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1])[k])
+        
+        d_comp = self.layer6.get_time_const() * (-self.mstd_cells[t-1, :, :] + (1 - self.mstd_cells[t-1, :, :, :]) * self.lr_out[t, :, :, :] - (self.mstd_cells[t-1, :] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1]))
+        
         return d_comp
 
 
