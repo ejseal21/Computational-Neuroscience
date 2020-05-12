@@ -156,3 +156,36 @@ def vector_sum_plot(act, figSz=(18, 9), pause=0.01):
         plt.quiver(X, Y, U[n], V[n])
         clear_output(wait=True)
         plt.pause(pause)
+
+
+def vector_sum_plot_and_input(act, input, figSz=(18, 9), pause=0.01):
+
+    input = np.where(input<1, 1, 0)
+    
+    if len(act.shape) == 3:
+        act = np.expand_dims(act, axis=0)
+    
+    (n_frames, n_dirs, height, width) = act.shape
+    U = np.zeros((n_frames, height, width))
+    V = np.zeros((n_frames, height, width))
+
+    #compute U and V
+    for i in range (n_frames):
+        for j in range (height):
+            for k in range (width):
+                for m in range (n_dirs):
+                    U[i, j, k] += act[i, m, j, k] * np.cos(2*np.pi*(m)/n_dirs)
+                    V[i, j, k] += act[i, m, j, k] * np.sin(2*np.pi*(m)/n_dirs)
+    U = U/(np.max(U)+0.0000000000001)
+    V = V/(np.max(V)+0.0000000000001)
+    X = np.arange(0, width)
+    Y = np.arange(0, height)
+    X, Y = np.meshgrid(X, Y, indexing='xy')
+
+    fig = plt.figure(figsize=figSz)
+    ax = fig.add_subplot(1, 1, 1)
+    for n in range(n_frames):
+        plt.quiver(X, Y, U[n], V[n])
+        plt.imshow(input[int(n/5)], cmap='bone')
+        clear_output(wait=True)
+        plt.pause(pause)
