@@ -385,12 +385,12 @@ class MotionNet:
         if self.do_lvl3:
             self.short_range_excit_ker = np.zeros((self.n_dirs, self.layer3_excite.get_size()[0], self.layer3_excite.get_size()[1]))
             for i in range(self.n_dirs):
-                self.short_range_excit_ker[i, :, :] = filters.aniso_gauss(i, sigmas=self.layer3_excite.get_sigma(), sz=self.layer3_excite.get_size())
+                self.short_range_excit_ker[i] = filters.aniso_gauss(i, sigmas=self.layer3_excite.get_sigma(), sz=self.layer3_excite.get_size())
         #layer 4
         if self.do_lvl4:
             self.comp_excit_ker = np.zeros((self.n_dirs, self.layer4_excite.get_size()[0], self.layer4_excite.get_size()[1]))
             for i in range(self.n_dirs):
-                self.comp_excit_ker[i, :, :] = filters.aniso_gauss(i, sigmas=self.layer4_excite.get_sigma(), sz=self.layer4_excite.get_size())
+                self.comp_excit_ker[i] = filters.aniso_gauss(i, sigmas=self.layer4_excite.get_sigma(), sz=self.layer4_excite.get_size())
             # self.comp_inhib_ker = np.zeros((self.layer4_inhib.get_size()[0], self.layer4_inhib.get_size()[1]))
             # for i in range(self.n_dirs):
             self.comp_inhib_ker = filters.iso_gauss(sigma=self.layer4_inhib.get_sigma(), sz=self.layer4_inhib.get_size())
@@ -398,7 +398,7 @@ class MotionNet:
         if self.do_lvl5:
             self.long_range_excit_ker = np.zeros((self.n_dirs, self.layer5_excite.get_size()[0], self.layer5_excite.get_size()[1]))
             for i in range(self.n_dirs):
-                self.long_range_excit_ker[i, :, :] = filters.aniso_gauss(i, sigmas=self.layer5_excite.get_sigma(), sz=self.layer5_excite.get_size())
+                self.long_range_excit_ker[i] = filters.aniso_gauss(i, sigmas=self.layer5_excite.get_sigma(), sz=self.layer5_excite.get_size())
         #layer 6
         if self.do_lvl6:
             # self.mstd_inhib_ker = np.zeros((self.layer6_inhib.get_size()[0], self.layer6_inhib.get_size()[1]))
@@ -614,10 +614,7 @@ class MotionNet:
         '''
         d_srf = np.zeros((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
-            d_srf[k] = self.layer3.get_time_const() * (- np.expand_dims(self.srf_cells[t-1, k, :, :], 0) + signal.convolve(self.dir_trans_out[t, k], self.short_range_excit_ker[k], "same"))
-        # d_srf = self.layer3.get_time_const() * (- np.expand_dims(self.srf_cells[t-1], 0) + signal.convolve(self.dir_trans_out[t], self.short_range_excit_ker, "same"))
-                        
-
+            d_srf[k] = self.layer3.get_time_const() * (- np.expand_dims(self.srf_cells[t-1, k], 0) + signal.convolve(self.dir_trans_out[t, k], self.short_range_excit_ker[k], "same"))
         return d_srf
 
     def d_competition_layer(self, t):
@@ -643,7 +640,7 @@ class MotionNet:
         d_comp = np.zeros((self.n_dirs, self.height, self.width))
         for k in range(self.n_dirs):
             opposite = self.get_opponent_direction(k)
-            d_comp[k] = self.layer4.get_time_const() * (- np.expand_dims(self.comp_cells[t-1, k, :, :], 0) + (1-self.comp_cells[t-1, k, :, :]) * signal.convolve(self.srf_out[t, k], self.comp_excit_ker[k], "same") - (self.comp_cells[t-1, k, :, :] + self.layer4.get_lower_bound()) * (signal.convolve(self.srf_out[t, k], self.comp_inhib_ker, "same") + self.srf_out[t, opposite, :, :]) )
+            d_comp[k] = self.layer4.get_time_const() * (- np.expand_dims(self.comp_cells[t-1, k], 0) + (1-self.comp_cells[t-1, k]) * signal.convolve(self.srf_out[t, k], self.comp_excit_ker[k], "same") - (self.comp_cells[t-1, k] + self.layer4.get_lower_bound()) * (signal.convolve(self.srf_out[t, k], self.comp_inhib_ker, "same") + self.srf_out[t, opposite]) )
 
         return d_comp
         
@@ -673,7 +670,7 @@ class MotionNet:
                 fb = 0
             else:
                 fb = self.mstd_fb(t,self.mstd_out[t-1])[k]
-            d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k, :, :], 0) + (1 - self.lr_cells[t-1, k, :, :]) * signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k, :, :] + self.layer5.get_lower_bound()) * fb) 
+            d_lrf[k] = self.layer5.get_time_const() * (- np.expand_dims(self.lr_cells[t-1, k], 0) + (1 - self.lr_cells[t-1, k]) * signal.convolve(self.comp_out[t, k], self.long_range_excit_ker[k], "same") - (self.lr_cells[t-1, k] + self.layer5.get_lower_bound()) * fb) 
         return d_lrf
         
 
@@ -700,7 +697,7 @@ class MotionNet:
         # for k in range(self.n_dirs):            
         #     d_comp[k] = self.layer6.get_time_const() * (-self.mstd_cells[t-1, k, :, :] + (1 - self.mstd_cells[t-1, k, :, :]) * self.lr_out[t, k, :, :] - (self.mstd_cells[t-1, k] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1])[k])
         
-        d_comp = self.layer6.get_time_const() * (-self.mstd_cells[t-1, :, :] + (1 - self.mstd_cells[t-1, :, :, :]) * self.lr_out[t, :, :, :] - (self.mstd_cells[t-1, :] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1]))
+        d_comp = self.layer6.get_time_const() * (-self.mstd_cells[t-1] + (1 - self.mstd_cells[t-1]) * self.lr_out[t] - (self.mstd_cells[t-1] + self.layer6.get_lower_bound()) * self.mstd_fb(t, self.mstd_out[t-1]))
         
         return d_comp
 
